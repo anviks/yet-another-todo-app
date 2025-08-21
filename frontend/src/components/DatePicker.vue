@@ -15,13 +15,10 @@
           readonly
           v-bind="props"
           clearable
-          @click:clear="date = null; emitDateTime()"
+          @click:clear="dateValue = null"
         />
       </template>
-      <v-date-picker
-        v-model="date"
-        @update:model-value="emitDateTime"
-      />
+      <v-date-picker v-model="dateValue" />
     </v-menu>
 
     <!-- Time field -->
@@ -34,18 +31,17 @@
     >
       <template #activator="{ props }">
         <v-text-field
-          v-model="time"
+          v-model="timeValue"
           label="Time"
           readonly
           v-bind="props"
-          :clearable="time !== '00:00'"
-          @click:clear="emitDateTime"
+          :clearable="timeValue !== '00:00'"
+          :disabled="!dateValue"
         />
       </template>
       <v-time-picker
-        v-model="time"
+        v-model="timeValue"
         format="24hr"
-        @update:model-value="emitDateTime"
       />
     </v-menu>
   </div>
@@ -64,43 +60,38 @@ const props = defineProps({
 
 const emit = defineEmits<{ 'update:modelValue': [value: Moment | null] }>();
 
-const date = ref<Date | null>(null);
-const time = ref<string>('');
-
 const dateMenu = ref(false);
 const timeMenu = ref(false);
 
 const dateFormatted = computed(() =>
-  date.value ? moment(date.value).format('DD.MM.YYYY') : ''
+  dateValue.value ? moment(dateValue.value).format('DD.MM.YYYY') : ''
 );
 
-const emitDateTime = () => {
-  if (!date.value) {
-    emit('update:modelValue', null);
-    return;
-  }
-
-  const selectedDate = moment(date.value);
-
-  if (time.value) {
-    const [hours, minutes] = time.value.split(':').map(Number);
-    selectedDate.set({ hours, minutes });
-  }
-
-  emit('update:modelValue', selectedDate);
-};
-
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (val) {
-      date.value = val.clone().startOf('day').toDate();
-      time.value = val.format('HH:mm');
-    } else {
-      date.value = null;
-      time.value = '';
+const dateValue = computed({
+  get: () => props.modelValue?.toDate() ?? null,
+  set: (newDate: Date | null) => {
+    if (!newDate) {
+      emit('update:modelValue', null);
+      return;
     }
+
+    const m = props.modelValue ? props.modelValue.clone() : moment(newDate);
+    m.set({
+      year: newDate.getFullYear(),
+      month: newDate.getMonth(),
+      date: newDate.getDate(),
+    });
+    emit('update:modelValue', m);
   },
-  { immediate: true }
-);
+});
+
+const timeValue = computed({
+  get: () => props.modelValue?.format('HH:mm') ?? '',
+  set: (newTime: string | null) => {
+    if (!props.modelValue) return;
+    const [h, m] = newTime?.split(':').map(Number) ?? [0, 0];
+    const updated = props.modelValue.clone().set({ hour: h, minute: m });
+    emit('update:modelValue', updated);
+  },
+});
 </script>
