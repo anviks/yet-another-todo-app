@@ -10,15 +10,17 @@
     >
       <template #activator="{ props }">
         <v-text-field
-          v-model="dateFormatted"
+          :model-value="dateFormatted"
           label="Date"
           readonly
           v-bind="props"
+          clearable
+          @click:clear="date = null; emitDateTime()"
         />
       </template>
       <v-date-picker
         v-model="date"
-        @update:model-value="emitDateTime()"
+        @update:model-value="emitDateTime"
       />
     </v-menu>
 
@@ -36,12 +38,14 @@
           label="Time"
           readonly
           v-bind="props"
+          :clearable="time !== '00:00'"
+          @click:clear="emitDateTime"
         />
       </template>
       <v-time-picker
         v-model="time"
         format="24hr"
-        @update:model-value="emitDateTime()"
+        @update:model-value="emitDateTime"
       />
     </v-menu>
   </div>
@@ -57,7 +61,8 @@ const props = defineProps({
     default: null,
   },
 });
-const emit = defineEmits<{ 'update:modelValue': [value: Moment] }>();
+
+const emit = defineEmits<{ 'update:modelValue': [value: Moment | null] }>();
 
 const date = ref<Date | null>(null);
 const time = ref<string>('');
@@ -70,27 +75,30 @@ const dateFormatted = computed(() =>
 );
 
 const emitDateTime = () => {
-  if (!date.value) return;
+  if (!date.value) {
+    emit('update:modelValue', null);
+    return;
+  }
 
   const selectedDate = moment(date.value);
 
   if (time.value) {
     const [hours, minutes] = time.value.split(':').map(Number);
-    selectedDate.add(hours, 'hours');
-    selectedDate.add(minutes, 'minutes');
+    selectedDate.set({ hours, minutes });
   }
 
   emit('update:modelValue', selectedDate);
 };
 
-// Initialize from incoming modelValue
 watch(
   () => props.modelValue,
   (val) => {
     if (val) {
-      const d = val.toDate();
-      date.value = d;
-      time.value = d.toTimeString().slice(0, 5);
+      date.value = val.clone().startOf('day').toDate();
+      time.value = val.format('HH:mm');
+    } else {
+      date.value = null;
+      time.value = '';
     }
   },
   { immediate: true }
