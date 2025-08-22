@@ -1,6 +1,6 @@
 <template>
   <h1 class="mb-8">Create a To-Do task</h1>
-  <v-form >
+  <v-form @submit.prevent="submitTask">
     <div class="d-flex flex-column ga-2 mb-4">
       <v-text-field
         label="Title"
@@ -18,26 +18,38 @@
         label="Due date"
         v-model="task.dueDate"
       />
-      <l-map
-        style="height: 500px; width: 100%"
-        :zoom="zoom"
-        :center="center"
-        @click="addMarker"
-        @ready="onMapReady"
+      <v-input
+        v-model="marker"
+        :rules="rules.location"
+        label="Location"
       >
-        <l-tile-layer
-          :url="url"
-          :attribution="attribution"
-        ></l-tile-layer>
-        <l-marker
-          v-if="marker"
-          :lat-lng="marker"
-        />
-      </l-map>
+        <template #default>
+          <l-map
+            style="height: 500px; width: 100%"
+            :zoom="zoom"
+            :center="center"
+            @click="addMarker"
+            @ready="onMapReady"
+          >
+            <l-tile-layer
+              :url="url"
+              :attribution="attribution"
+            ></l-tile-layer>
+            <l-marker
+              v-if="marker"
+              :lat-lng="marker"
+            />
+          </l-map>
+        </template>
+      </v-input>
     </div>
 
     <div class="d-flex justify-end">
-      <v-btn color="info">Submit</v-btn>
+      <v-btn
+        color="info"
+        type="submit"
+        >Submit</v-btn
+      >
     </div>
   </v-form>
 </template>
@@ -75,6 +87,7 @@ const rules = {
     (value: string) =>
       value.length <= 2000 || 'Description must be 2000 characters or less',
   ],
+  location: [(value: LatLng) => !!value || 'Location is required'],
 };
 
 const marker = ref<LatLng>();
@@ -99,6 +112,10 @@ const onMapReady = () => {
       }
     );
   }
+};
+
+const submitTask = () => {
+  console.log('Trying to submit');
 };
 </script>
 
