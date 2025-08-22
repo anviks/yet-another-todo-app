@@ -12,10 +12,12 @@ const router = createRouter({
       children: [
         {
           path: '',
+          name: 'home',
           component: Home,
         },
         {
           path: '/add-task',
+          name: 'add-task',
           component: TaskForm,
         },
       ],

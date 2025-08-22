@@ -1,3 +1,3 @@
-import DatePicker from './DatePicker.vue';
+import DatetimePicker from './DatetimePicker.vue';
 
-export { DatePicker };
+export { DatetimePicker };

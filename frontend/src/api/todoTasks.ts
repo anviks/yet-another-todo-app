@@ -1,4 +1,3 @@
-import type { TodoTask } from '../models.ts';
 import client from './client.ts';
 
 export async function getTasks() {
@@ -6,7 +5,7 @@ export async function getTasks() {
   return response.data;
 }
 
-export async function createTask(task: TodoTask) {
+export async function createTask(task: any) {
   const response = await client.post('/todo', task);
   return response.data;
 }

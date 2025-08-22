@@ -1,6 +1,6 @@
 <template>
   <h1 class="mb-8">Create a To-Do task</h1>
-  <v-form @submit.prevent="submitTask">
+  <v-form ref="form" @submit.prevent="submitTask">
     <div class="d-flex flex-column ga-2 mb-4">
       <v-text-field
         label="Title"
@@ -14,7 +14,7 @@
         :rules="rules.description"
         counter="2000"
       />
-      <date-picker
+      <datetime-picker
         label="Due date"
         v-model="task.dueDate"
       />
@@ -48,8 +48,10 @@
       <v-btn
         color="info"
         type="submit"
-        >Submit</v-btn
+        :loading="isLoading"
       >
+        Submit
+      </v-btn>
     </div>
   </v-form>
 </template>
@@ -58,8 +60,12 @@
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
 import type { Moment } from 'moment';
-import { ref } from 'vue';
-import { DatePicker } from '../components';
+import { ref, useTemplateRef } from 'vue';
+import { DatetimePicker } from '../components';
+import { createTask } from '../api/todoTasks';
+import { useRouter } from 'vue-router';
+
+const form = useTemplateRef('form');
 
 interface TodoTaskForm {
   title: string;
@@ -76,6 +82,10 @@ const task = ref<TodoTaskForm>({
   latitude: 0.0,
   longitude: 0.0,
 });
+
+const router = useRouter();
+
+const isLoading = ref(false);
 
 const rules = {
   title: [
@@ -114,8 +124,22 @@ const onMapReady = () => {
   }
 };
 
-const submitTask = () => {
-  console.log('Trying to submit');
+const submitTask = async () => {
+  const validationResult = await form.value?.validate();
+  if (!validationResult?.valid) {
+    return;
+  }
+
+  if (marker.value) {
+    task.value.latitude = marker.value.lat;
+    task.value.longitude = marker.value.lng;
+  }
+
+  isLoading.value = true;
+  await createTask(task.value);
+  isLoading.value = false;
+
+  await router.push({ name: 'home' });
 };
 </script>
 
