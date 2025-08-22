@@ -1,6 +1,9 @@
 <template>
   <h1 class="mb-8">Create a To-Do task</h1>
-  <v-form ref="form" @submit.prevent="submitTask">
+  <v-form
+    ref="form"
+    @submit.prevent="submitTask"
+  >
     <div class="d-flex flex-column ga-2 mb-4">
       <v-text-field
         label="Title"
@@ -8,16 +11,19 @@
         :rules="rules.title"
         counter="100"
       />
+
       <v-textarea
         label="Description"
         v-model="task.description"
         :rules="rules.description"
         counter="2000"
       />
+
       <datetime-picker
         label="Due date"
         v-model="task.dueDate"
       />
+
       <v-input
         v-model="marker"
         :rules="rules.location"
@@ -107,7 +113,7 @@ const attribution =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const zoom = ref(1);
-const center = ref([0, 0]);
+const center = ref<[number, number]>([0, 0]);
 
 const addMarker = (event: { latlng: LatLng }) => {
   marker.value = event.latlng;
