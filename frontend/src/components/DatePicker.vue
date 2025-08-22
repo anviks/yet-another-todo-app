@@ -11,7 +11,7 @@
       <template #activator="{ props }">
         <v-text-field
           :model-value="dateFormatted"
-          label="Date"
+          :label="label === '' ? 'Date' : `${label} (date)`"
           readonly
           v-bind="props"
           clearable
@@ -32,7 +32,7 @@
       <template #activator="{ props }">
         <v-text-field
           v-model="timeValue"
-          label="Time"
+          :label="label === '' ? 'Time' : `${label} (time)`"
           readonly
           v-bind="props"
           :clearable="timeValue !== '00:00'"
@@ -49,12 +49,16 @@
 
 <script setup lang="ts">
 import moment, { type Moment } from 'moment';
-import { ref, computed, watch, type PropType } from 'vue';
+import { ref, computed, type PropType } from 'vue';
 
 const props = defineProps({
   modelValue: {
     type: Object as PropType<Moment | null>,
     default: null,
+  },
+  label: {
+    type: String,
+    default: '',
   },
 });
 
