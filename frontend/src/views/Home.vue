@@ -89,6 +89,7 @@ import type { TodoTask } from '../models.ts';
 import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
+import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 
 const tasks = ref<TodoTask[]>([]);
 const mapObject = ref<LeafletMap>();
@@ -120,8 +121,25 @@ const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
 };
 
-onMounted(async () => {
+const loadTasks = async () => {
   tasks.value = await getTasks();
+}
+
+const connection = ref<HubConnection>();
+
+const connectToHub = () => {
+  connection.value = new HubConnectionBuilder()
+    .withUrl(`${import.meta.env.VITE_BACKEND_URL}/hubs/todo`)
+    .build();
+  
+  connection.value.on('TasksUpdated', loadTasks);
+
+  connection.value.start();
+}
+
+onMounted(async () => {
+  await loadTasks();
+  connectToHub();
 });
 </script>
 

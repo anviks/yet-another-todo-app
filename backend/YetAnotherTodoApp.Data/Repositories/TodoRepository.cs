@@ -9,7 +9,7 @@ public class TodoRepository(TodoContext db) : ITodoRepository
 {
     public async Task<List<TodoTask>> GetAllTasks()
     {
-        return await db.Tasks.ToListAsync();
+        return await db.Tasks.OrderBy(t => t.Id).ToListAsync();
     }
 
     public async Task<TodoTask?> GetTask(int id)

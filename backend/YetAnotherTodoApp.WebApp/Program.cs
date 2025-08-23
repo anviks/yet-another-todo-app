@@ -6,6 +6,7 @@ using YetAnotherTodoApp.Data.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Hubs;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,6 @@ app.MapRazorPages();
 
 app.MapControllers();
 
-// app.MapHub<GameHub>("/gamehub");
+app.MapHub<TodoHub>("/hubs/todo");
 
 app.Run();
