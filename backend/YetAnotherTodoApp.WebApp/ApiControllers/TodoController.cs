@@ -35,17 +35,8 @@ public class TodoController(TodoService todoService) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateTask(int id, TodoTask task)
     {
-        if (id != task.Id)
-        {
-            return BadRequest("Task ID mismatch.");
-        }
-
-        TodoTask? existingTask = await todoService.GetTask(id);
-        if (existingTask == null)
-        {
-            return NotFound();
-        }
-
+        if (id != task.Id) return BadRequest("Task ID mismatch.");
+        if (!await todoService.Exists(id)) return NotFound();
         await todoService.UpdateTask(task);
         return NoContent();
     }
@@ -53,20 +44,16 @@ public class TodoController(TodoService todoService) : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteTask(int id)
     {
-        TodoTask? existingTask = await todoService.GetTask(id);
-        if (existingTask == null)
-        {
-            return NotFound();
-        }
-
+        if (!await todoService.Exists(id)) return NotFound();
         await todoService.DeleteTask(id);
         return NoContent();
     }
 
-    [HttpPost("{id:int}/complete")]
-    public async Task<IActionResult> MarkTaskCompleted(int id)
+    [HttpPost("{id:int}/{actionName:regex(complete|uncomplete)}")]
+    public async Task<IActionResult> MarkTaskCompleted(int id, string actionName)
     {
-        var result = await todoService.MarkTaskCompleted(id);
+        var markCompleted = actionName == "complete";
+        var result = await todoService.MarkTaskCompleted(id, markCompleted);
         if (!result) return NotFound();
         return NoContent();
     }

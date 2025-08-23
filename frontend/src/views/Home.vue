@@ -14,38 +14,47 @@
       sm="5"
     >
       <div class="d-flex flex-column ga-3">
-        <v-card
+        <div
           v-for="task in tasks"
           :key="task.id"
-          class="pa-3"
-          @click="focusAt(task.latitude, task.longitude)"
+          class="d-flex ga-2"
         >
-          <div class="d-flex justify-space-between align-center">
-            <div class="d-flex flex-column">
-              <h3 class="ml-1">{{ task.title }}</h3>
+          <v-checkbox
+            hide-details
+            :model-value="!!task.completedAt"
+            @update:model-value="markCompleted(task.id, $event!)"
+          ></v-checkbox>
+          <v-card
+            class="pa-3 w-100"
+            @click="focusAt(task.latitude, task.longitude)"
+          >
+            <div class="d-flex justify-space-between align-center">
+              <div class="d-flex flex-column">
+                <h3 class="ml-1">{{ task.title }}</h3>
+                <div class="d-flex ga-1">
+                  <v-icon>mdi-map-marker</v-icon>
+                  <span>
+                    {{ task.latitude.toFixed(6) }},
+                    {{ task.longitude.toFixed(6) }}
+                  </span>
+                </div>
+              </div>
               <div class="d-flex ga-1">
-                <v-icon>mdi-map-marker</v-icon>
-                <span>
-                  {{ task.latitude.toFixed(6) }},
-                  {{ task.longitude.toFixed(6) }}
-                </span>
+                <v-btn
+                  variant="flat"
+                  icon="mdi-pencil"
+                  @click.stop
+                  :to="{ name: 'edit-task', params: { taskId: task.id } }"
+                ></v-btn>
+                <v-btn
+                  variant="flat"
+                  icon="mdi-trash-can"
+                  @click.stop="console.log('hi')"
+                ></v-btn>
               </div>
             </div>
-            <div class="d-flex ga-1">
-              <v-btn
-                variant="flat"
-                icon="mdi-pencil"
-                @click.stop
-                :to="{ name: 'edit-task', params: { taskId: task.id } }"
-              ></v-btn>
-              <v-btn
-                variant="flat"
-                icon="mdi-trash-can"
-                @click.stop="console.log('hi')"
-              ></v-btn>
-            </div>
-          </div>
-        </v-card>
+          </v-card>
+        </div>
       </div>
     </v-col>
     <v-col
@@ -75,7 +84,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { getTasks } from '../api/todoTasks.ts';
+import { completeTask, getTasks } from '../api/todoTasks.ts';
 import type { TodoTask } from '../models.ts';
 import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
@@ -105,6 +114,10 @@ const onMapReady = (map: LeafletMap) => {
 const focusAt = (latitude: number, longitude: number) => {
   if (!mapObject.value) return;
   mapObject.value.setView([latitude, longitude], 15, { animate: true });
+};
+
+const markCompleted = async (taskId: number, completed: boolean) => {
+  await completeTask(taskId, completed);
 };
 
 onMounted(async () => {

@@ -36,4 +36,22 @@ public class TodoRepository(TodoContext db) : ITodoRepository
         db.Tasks.Remove(task);
         await db.SaveChangesAsync();
     }
+
+    public async Task<bool> MarkTaskCompleted(int id, bool completed)
+    {
+        var updated = await db.Tasks
+            .Where(t => t.Id == id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(t => t.CompletedAt, completed ? DateTime.UtcNow : null));
+
+        return updated > 0;
+    }
+
+    public async Task<bool> Exists(int id)
+    {
+        return await db.Tasks
+            .AsNoTracking()
+            .Where(t => t.Id == id)
+            .AnyAsync();
+    }
 }

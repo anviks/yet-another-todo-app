@@ -12,14 +12,9 @@ public class TodoTask
     public DateTime? DueDate { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
-    public bool IsCompleted { get; private set; }
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    public DateTime? CompletedAt { get; private set; }
 
-    public void MarkCompleted(bool completed)
-    {
-        IsCompleted = completed;
-        CompletedAt = completed ? DateTime.UtcNow : null;
-    }
+    // TODO: Add author
 }

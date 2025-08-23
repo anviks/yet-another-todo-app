@@ -30,14 +30,13 @@ public class TodoService(ITodoRepository todoRepository)
         await todoRepository.DeleteTask(id);
     }
 
-    public async Task<bool> MarkTaskCompleted(int id)
+    public async Task<bool> MarkTaskCompleted(int id, bool completed = true)
     {
-        TodoTask? task = await todoRepository.GetTask(id);
-        if (task == null || task.IsCompleted) return false;
+        return await todoRepository.MarkTaskCompleted(id, completed);
+    }
 
-        task.MarkCompleted(true);
-        await todoRepository.UpdateTask(task);
-
-        return true;
+    public async Task<bool> Exists(int id)
+    {
+        return await todoRepository.Exists(id);
     }
 }
