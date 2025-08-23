@@ -4,7 +4,10 @@
       cols="12"
       sm="1"
     >
-      <v-btn icon="mdi-plus"></v-btn>
+      <v-btn
+        icon="mdi-plus"
+        :to="{ name: 'add-task' }"
+      ></v-btn>
     </v-col>
     <v-col
       cols="12"
@@ -32,7 +35,8 @@
               <v-btn
                 variant="flat"
                 icon="mdi-pencil"
-                @click.stop="console.log('hi')"
+                @click.stop
+                :to="{ name: 'edit-task', params: { taskId: task.id } }"
               ></v-btn>
               <v-btn
                 variant="flat"
@@ -50,8 +54,8 @@
     >
       <l-map
         style="height: 500px; width: 100%"
-        :zoom="1"
-        :center="[0, 0]"
+        :zoom="zoom"
+        :center="center"
         @ready="onMapReady"
       >
         <l-tile-layer
@@ -79,6 +83,9 @@ import type { Map as LeafletMap } from 'leaflet';
 
 const tasks = ref<TodoTask[]>([]);
 const mapObject = ref<LeafletMap>();
+
+const zoom = ref(1);
+const center = ref<[number, number]>([0, 0]);
 
 const url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const attribution =

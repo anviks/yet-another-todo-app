@@ -1,5 +1,5 @@
 <template>
-  <h1 class="mb-8">Create a To-Do task</h1>
+  <h1 class="mb-8">{{ taskId ? 'Edit' : 'Create' }} a To-Do task</h1>
   <v-form
     ref="form"
     @submit.prevent="submitTask"
@@ -52,6 +52,13 @@
 
     <div class="d-flex justify-end">
       <v-btn
+        variant="text"
+        :to="{ name: 'home' }"
+        class="mr-4"
+      >
+        Cancel
+      </v-btn>
+      <v-btn
         color="info"
         type="submit"
         :loading="isLoading"
@@ -66,12 +73,20 @@
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
 import type { Moment } from 'moment';
-import { ref, useTemplateRef } from 'vue';
+import { onMounted, ref, useTemplateRef, watch } from 'vue';
 import { DatetimePicker } from '../components';
-import { createTask } from '../api/todoTasks';
+import { createTask, getTask, updateTask } from '../api/todoTasks';
 import { useRouter } from 'vue-router';
+import type { Map as LeafletMap } from 'leaflet';
 
 const form = useTemplateRef('form');
+
+const props = defineProps({
+  taskId: {
+    type: Number,
+    default: null,
+  },
+});
 
 interface TodoTaskForm {
   title: string;
@@ -89,8 +104,9 @@ const task = ref<TodoTaskForm>({
   longitude: 0.0,
 });
 
+const mapObject = ref<LeafletMap>();
 const router = useRouter();
-
+const taskLoaded = ref(false);
 const isLoading = ref(false);
 
 const rules = {
@@ -119,15 +135,21 @@ const addMarker = (event: { latlng: LatLng }) => {
   marker.value = event.latlng;
 };
 
-const onMapReady = () => {
-  if (navigator.geolocation) {
+const onMapReady = (map: LeafletMap) => {
+  mapObject.value = map;
+
+  if (!props.taskId && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
-        center.value = [position.coords.latitude, position.coords.longitude];
-        zoom.value = 13;
+        focusAt(position.coords.latitude, position.coords.longitude, 13);
       }
     );
   }
+};
+
+const focusAt = (latitude: number, longitude: number, zoom: number = 15) => {
+  if (!mapObject.value) return;
+  mapObject.value!.setView([latitude, longitude], zoom, { animate: true });
 };
 
 const submitTask = async () => {
@@ -142,11 +164,30 @@ const submitTask = async () => {
   }
 
   isLoading.value = true;
-  await createTask(task.value);
+  if (props.taskId) {
+    await updateTask(props.taskId, task.value);
+  } else {
+    await createTask(task.value);
+  }
   isLoading.value = false;
 
   await router.push({ name: 'home' });
 };
+
+onMounted(async () => {
+  if (props.taskId) {
+    task.value = await getTask(props.taskId);
+    const { latitude, longitude } = task.value;
+    marker.value = { lat: latitude, lng: longitude };
+    taskLoaded.value = true;
+  }
+});
+
+watch([mapObject, taskLoaded], ([mapValue, isTaskLoaded]) => {
+  if (mapValue && isTaskLoaded) {
+    focusAt(task.value.latitude, task.value.longitude, 13);
+  }
+});
 </script>
 
 <style scoped></style>

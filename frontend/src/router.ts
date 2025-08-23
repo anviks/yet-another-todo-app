@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteLocation } from 'vue-router';
 import TaskForm from './views/TaskForm.vue';
 import Home from './views/Home.vue';
 import Layout from './layout/Layout.vue';
@@ -19,6 +19,14 @@ const router = createRouter({
           path: '/add-task',
           name: 'add-task',
           component: TaskForm,
+        },
+        {
+          path: '/edit-task/:taskId',
+          name: 'edit-task',
+          component: TaskForm,
+          props: (route: RouteLocation) => ({
+            taskId: Number(route.params.taskId) || null,
+          }),
         },
       ],
     },
