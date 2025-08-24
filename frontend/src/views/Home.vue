@@ -7,15 +7,20 @@
       <v-btn
         icon="mdi-plus"
         :to="{ name: 'add-task' }"
-      ></v-btn>
+      />
     </v-col>
+
     <v-col
       cols="12"
       sm="5"
     >
-      <div class="d-flex flex-column ga-3">
+      <transition-group
+        name="tasks-list"
+        tag="div"
+        class="d-flex flex-column ga-3"
+      >
         <div
-          v-for="task in tasks"
+          v-for="(task, i) in tasks"
           :key="task.id"
           class="d-flex ga-2"
         >
@@ -23,7 +28,7 @@
             hide-details
             :model-value="!!task.completedAt"
             @update:model-value="markCompleted(task.id, $event!)"
-          ></v-checkbox>
+          />
           <v-card
             class="pa-3 w-100"
             @click="focusAt(task.latitude, task.longitude)"
@@ -41,21 +46,45 @@
               </div>
               <div class="d-flex ga-1">
                 <v-btn
-                  variant="flat"
+                  variant="text"
                   icon="mdi-pencil"
                   @click.stop
                   :to="{ name: 'edit-task', params: { taskId: task.id } }"
-                ></v-btn>
-                <v-btn
-                  variant="flat"
-                  icon="mdi-trash-can"
-                  @click.stop="console.log('hi')"
-                ></v-btn>
+                />
+                <v-dialog max-width="500">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="text"
+                      icon="mdi-trash-can"
+                      @click.stop
+                    />
+                  </template>
+                  <template #default="{ isActive }">
+                    <v-card title="Are you sure you wish do delete this task?">
+                      <v-card-actions>
+                        <v-btn
+                          variant="text"
+                          @click="isActive.value = false"
+                        >
+                          Cancel
+                        </v-btn>
+                        <v-btn
+                          variant="elevated"
+                          color="error"
+                          @click="confirmDelete(task.id)"
+                        >
+                          Delete
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
               </div>
             </div>
           </v-card>
         </div>
-      </div>
+      </transition-group>
     </v-col>
     <v-col
       cols="12"
@@ -71,6 +100,7 @@
           :url="url"
           :attribution="attribution"
         ></l-tile-layer>
+
         <l-marker
           v-for="(marker, i) in markers"
           :key="i"
@@ -84,7 +114,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { completeTask, getTasks } from '../api/todoTasks.ts';
+import { completeTask, deleteTask, getTasks } from '../api/todoTasks.ts';
 import type { TodoTask } from '../models.ts';
 import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
@@ -121,9 +151,13 @@ const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
 };
 
+const confirmDelete = async (taskId: number) => {
+  await deleteTask(taskId);
+};
+
 const loadTasks = async () => {
   tasks.value = await getTasks();
-}
+};
 
 const connection = ref<HubConnection>();
 
@@ -131,11 +165,11 @@ const connectToHub = () => {
   connection.value = new HubConnectionBuilder()
     .withUrl(`${import.meta.env.VITE_BACKEND_URL}/hubs/todo`)
     .build();
-  
+
   connection.value.on('TasksUpdated', loadTasks);
 
   connection.value.start();
-}
+};
 
 onMounted(async () => {
   await loadTasks();
@@ -143,4 +177,14 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.tasks-list-enter-active,
+.tasks-list-leave-active {
+  transition: all 0.5s ease;
+}
+.tasks-list-enter-from,
+.tasks-list-leave-to {
+  opacity: 0;
+  transform: translateX(-50px);
+}
+</style>
