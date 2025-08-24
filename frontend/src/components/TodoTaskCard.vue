@@ -1,5 +1,8 @@
 <template>
-  <div class="d-flex ga-2">
+  <div
+    class="d-flex ga-2 task-card"
+    :class="{ 'task-completed': !!task.completedAt }"
+  >
     <v-checkbox
       hide-details
       :model-value="!!task.completedAt"
@@ -93,4 +96,24 @@ const confirmDelete = async (taskId: number) => {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.task-card {
+  position: relative;
+
+  &.task-completed {
+    opacity: 0.7;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 102%;
+      height: 2px;
+      background-color: gray;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+  }
+}
+</style>
