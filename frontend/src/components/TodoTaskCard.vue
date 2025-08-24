@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="d-flex ga-2 task-card"
-    :class="{ 'task-completed': !!task.completedAt }"
-  >
+  <div class="d-flex ga-2">
     <v-checkbox
       hide-details
       :model-value="!!task.completedAt"
@@ -10,9 +7,16 @@
     />
 
     <v-card
-      class="pa-3 w-100"
+      class="pa-3 w-100 task-card"
       @click="emit('task-clicked')"
+      :class="{ 'task-completed': !!task.completedAt }"
     >
+      <v-fade-transition>
+        <div
+          v-if="!!task.completedAt"
+          class="completed-task-overlay"
+        ></div>
+      </v-fade-transition>
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex flex-column">
           <h3 class="ml-1">{{ task.title }}</h3>
@@ -99,6 +103,7 @@ const confirmDelete = async (taskId: number) => {
 <style scoped lang="scss">
 .task-card {
   position: relative;
+  overflow: visible;
 
   &.task-completed {
     opacity: 0.7;
@@ -107,13 +112,24 @@ const confirmDelete = async (taskId: number) => {
       content: '';
       position: absolute;
       top: 50%;
-      left: 0;
-      width: 102%;
+      left: -6px;
+      right: -6px;
       height: 2px;
       background-color: gray;
       transform: translateY(-50%);
       pointer-events: none;
     }
   }
+}
+
+.completed-task-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 </style>
