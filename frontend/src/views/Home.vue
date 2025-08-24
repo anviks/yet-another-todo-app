@@ -20,74 +20,12 @@
         class="d-flex flex-column ga-3"
         @before-leave="beforeLeave"
       >
-        <div
+        <todo-task-card
           v-for="task in tasks"
           :key="task.id"
-          class="d-flex ga-2"
-        >
-          <v-checkbox
-            hide-details
-            :model-value="!!task.completedAt"
-            @update:model-value="markCompleted(task.id, $event!)"
-          />
-          <v-card
-            class="pa-3 w-100"
-            @click="focusAt(task.latitude, task.longitude)"
-          >
-            <div class="d-flex justify-space-between align-center">
-              <div class="d-flex flex-column">
-                <h3 class="ml-1">{{ task.title }}</h3>
-                <div class="d-flex ga-1">
-                  <v-icon>mdi-map-marker</v-icon>
-                  <span>
-                    {{ task.latitude.toFixed(6) }},
-                    {{ task.longitude.toFixed(6) }}
-                  </span>
-                </div>
-              </div>
-              <div class="d-flex ga-1">
-                <v-btn
-                  variant="text"
-                  icon="mdi-pencil"
-                  @click.stop
-                  :to="{ name: 'edit-task', params: { taskId: task.id } }"
-                />
-                <v-dialog
-                  max-width="500"
-                  absolute
-                >
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      variant="text"
-                      icon="mdi-trash-can"
-                      @click.stop
-                    />
-                  </template>
-                  <template #default="{ isActive }">
-                    <v-card title="Are you sure you wish do delete this task?">
-                      <v-card-actions>
-                        <v-btn
-                          variant="text"
-                          @click="isActive.value = false"
-                        >
-                          Cancel
-                        </v-btn>
-                        <v-btn
-                          variant="elevated"
-                          color="error"
-                          @click="confirmDelete(task.id)"
-                        >
-                          Delete
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </template>
-                </v-dialog>
-              </div>
-            </div>
-          </v-card>
-        </div>
+          :task="task"
+          @task-clicked="focusAt(task.latitude, task.longitude)"
+        ></todo-task-card>
       </transition-group>
     </v-col>
     <v-col
@@ -121,7 +59,8 @@ import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
 import { onMounted, ref } from 'vue';
-import { completeTask, deleteTask, getTasks } from '../api/todoTasks.ts';
+import { getTasks } from '../api/todoTasks.ts';
+import { TodoTaskCard } from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
 
 const tasks = ref<TodoTask[]>([]);
@@ -141,14 +80,6 @@ const onMapReady = (map: LeafletMap) => {
 const focusAt = (latitude: number, longitude: number) => {
   if (!mapObject.value) return;
   mapObject.value.setView([latitude, longitude], 15, { animate: true });
-};
-
-const markCompleted = async (taskId: number, completed: boolean) => {
-  await completeTask(taskId, completed);
-};
-
-const confirmDelete = async (taskId: number) => {
-  await deleteTask(taskId);
 };
 
 const loadTasks = async () => {
