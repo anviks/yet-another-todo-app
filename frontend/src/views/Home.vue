@@ -21,7 +21,7 @@
         @before-leave="beforeLeave"
       >
         <div
-          v-for="(task, i) in tasks"
+          v-for="task in tasks"
           :key="task.id"
           class="d-flex ga-2"
         >
@@ -106,10 +106,10 @@
         ></l-tile-layer>
 
         <l-marker
-          v-for="(marker, i) in markers"
-          :key="i"
-          :lat-lng="marker"
-          @click="focusAt(marker.lat, marker.lng)"
+          v-for="task in tasks"
+          :key="task.id + '-' + task.latitude + '-' + task.longitude"
+          :lat-lng="[task.latitude, task.longitude]"
+          @click="focusAt(task.latitude, task.longitude)"
         />
       </l-map>
     </v-col>
@@ -117,13 +117,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { completeTask, deleteTask, getTasks } from '../api/todoTasks.ts';
-import type { TodoTask } from '../models.ts';
-import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
+import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
-import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
+import { onMounted, ref } from 'vue';
+import { completeTask, deleteTask, getTasks } from '../api/todoTasks.ts';
+import type { TodoTask } from '../models.ts';
 
 const tasks = ref<TodoTask[]>([]);
 const mapObject = ref<LeafletMap>();
@@ -134,13 +133,6 @@ const center = ref<[number, number]>([0, 0]);
 const url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const attribution =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-const markers = computed<LatLng[]>(() =>
-  tasks.value.map((task) => ({
-    lat: task.latitude,
-    lng: task.longitude,
-  }))
-);
 
 const onMapReady = (map: LeafletMap) => {
   mapObject.value = map;
