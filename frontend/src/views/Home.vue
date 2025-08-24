@@ -18,6 +18,7 @@
         name="tasks-list"
         tag="div"
         class="d-flex flex-column ga-3"
+        @before-leave="beforeLeave"
       >
         <div
           v-for="(task, i) in tasks"
@@ -51,7 +52,10 @@
                   @click.stop
                   :to="{ name: 'edit-task', params: { taskId: task.id } }"
                 />
-                <v-dialog max-width="500">
+                <v-dialog
+                  max-width="500"
+                  absolute
+                >
                   <template #activator="{ props }">
                     <v-btn
                       v-bind="props"
@@ -159,6 +163,25 @@ const loadTasks = async () => {
   tasks.value = await getTasks();
 };
 
+/* This is needed to fix a bug with transition-group and flexbox.
+   When an element is removed from a flexbox container, its position
+   is calculated incorrectly during the leave transition.
+   By setting explicit width/height/left/top styles before the leave
+   transition starts, we can work around this issue.
+
+   Source: https://stackoverflow.com/a/59650481
+*/
+const beforeLeave = (el: Element) => {
+  const div = el as HTMLDivElement;
+
+  const { marginLeft, marginTop, width, height } = window.getComputedStyle(div);
+
+  div.style.left = `${div.offsetLeft - parseFloat(marginLeft)}px`;
+  div.style.top = `${div.offsetTop - parseFloat(marginTop)}px`;
+  div.style.width = width;
+  div.style.height = height;
+};
+
 const connection = ref<HubConnection>();
 
 const connectToHub = () => {
@@ -178,6 +201,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.tasks-list-move,
 .tasks-list-enter-active,
 .tasks-list-leave-active {
   transition: all 0.5s ease;
@@ -186,5 +210,8 @@ onMounted(async () => {
 .tasks-list-leave-to {
   opacity: 0;
   transform: translateX(-50px);
+}
+.tasks-list-leave-active {
+  position: absolute;
 }
 </style>
