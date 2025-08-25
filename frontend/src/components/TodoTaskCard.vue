@@ -11,12 +11,10 @@
       @click="emit('task-clicked')"
       :class="{ 'task-completed': !!task.completedAt }"
     >
-      <v-fade-transition>
-        <div
-          v-if="!!task.completedAt"
-          class="completed-task-overlay"
-        ></div>
-      </v-fade-transition>
+      <div
+        v-if="!!task.completedAt"
+        class="completed-task-overlay"
+      ></div>
 
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex flex-column">
@@ -154,6 +152,7 @@ const confirmDelete = async (taskId: number) => {
     --background-color: 197, 197, 197;
 
     opacity: 0.7;
+    transition: none;
 
     &::after {
       content: '';
@@ -203,7 +202,6 @@ const confirmDelete = async (taskId: number) => {
       rgba(var(--background-color), 1) 80%
     );
     pointer-events: none;
-    transition: background-color 0.3s ease;
   }
 }
 </style>
