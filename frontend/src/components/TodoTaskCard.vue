@@ -17,10 +17,39 @@
           class="completed-task-overlay"
         ></div>
       </v-fade-transition>
+
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex flex-column">
           <h3 class="ml-1">{{ task.title }}</h3>
-          <div class="d-flex ga-1">
+
+          <div
+            v-if="task.description"
+            class="ml-2"
+          >
+            <div
+              ref="textBlock"
+              class="task-description"
+              :class="{ 'text-preview-fade': !descriptionExpanded }"
+              :style="{
+                maxHeight: descriptionExpanded
+                  ? textHeight + 'px'
+                  : previewHeight + 'px',
+              }"
+            >
+              {{ task.description }}
+            </div>
+
+            <v-btn
+              variant="text"
+              size="small"
+              class="mt-1 px-0"
+              @click.stop="descriptionExpanded = !descriptionExpanded"
+            >
+              {{ descriptionExpanded ? 'See less' : 'See more' }}
+            </v-btn>
+          </div>
+
+          <div class="d-flex ga-1 mt-2">
             <v-icon>mdi-map-marker</v-icon>
             <span>
               {{ task.latitude.toFixed(6) }},
@@ -78,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
+import { onMounted, ref, type PropType } from 'vue';
 import type { TodoTask } from '../models';
 import { completeTask, deleteTask } from '../api/todoTasks';
 
@@ -91,6 +120,19 @@ defineProps({
 
 const emit = defineEmits<{ 'task-clicked': [] }>();
 
+const descriptionExpanded = ref(false);
+const textBlock = ref<HTMLElement | null>(null);
+const previewHeight = ref(0);
+const textHeight = ref(0);
+
+onMounted(async () => {
+  if (textBlock.value) {
+    textHeight.value = textBlock.value.scrollHeight;
+    const lineHeight = parseFloat(getComputedStyle(textBlock.value).lineHeight);
+    previewHeight.value = lineHeight * 2; // show 2 lines preview
+  }
+});
+
 const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
 };
@@ -102,10 +144,15 @@ const confirmDelete = async (taskId: number) => {
 
 <style scoped lang="scss">
 .task-card {
+  --background-color: 255, 255, 255;
+
   position: relative;
   overflow: visible;
+  word-break: break-word;
 
   &.task-completed {
+    --background-color: 197, 197, 197;
+
     opacity: 0.7;
 
     &::after {
@@ -122,6 +169,11 @@ const confirmDelete = async (taskId: number) => {
   }
 }
 
+.task-description {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
 .completed-task-overlay {
   position: absolute;
   top: 0;
@@ -130,6 +182,28 @@ const confirmDelete = async (taskId: number) => {
   height: 100%;
   border-radius: inherit;
   pointer-events: none;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(var(--background-color), 1);
+  z-index: -1;
+}
+
+.text-preview-fade {
+  position: relative;
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1.5em;
+    background: linear-gradient(
+      to bottom,
+      rgba(var(--background-color), 0),
+      rgba(var(--background-color), 1) 80%
+    );
+    pointer-events: none;
+    transition: background-color 0.3s ease;
+  }
 }
 </style>
