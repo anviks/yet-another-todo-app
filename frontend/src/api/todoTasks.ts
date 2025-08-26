@@ -1,13 +1,23 @@
+import moment from 'moment';
+import type { TodoTask } from '../models.ts';
 import client from './client.ts';
 
-export async function getTasks() {
-  const response = await client.get('/todo');
-  return response.data;
+export async function getTasks(): Promise<TodoTask[]> {
+  const response = await client.get<TodoTask[]>('/todo');
+  const tasks = response.data;
+  tasks.forEach((task) => {
+    if (task.dueDate) task.dueDate = moment(task.dueDate);
+  });
+
+  return tasks;
 }
 
-export async function getTask(taskId: number) {
-  const response = await client.get(`/todo/${taskId}`);
-  return response.data;
+export async function getTask(taskId: number): Promise<TodoTask> {
+  const response = await client.get<TodoTask>(`/todo/${taskId}`);
+  const task = response.data;
+  if (task.dueDate) task.dueDate = moment(task.dueDate);
+
+  return task;
 }
 
 export async function createTask(task: any) {
@@ -26,6 +36,8 @@ export async function deleteTask(taskId: number) {
 }
 
 export async function completeTask(taskId: number, completed: boolean = true) {
-  const response = await client.post(`/todo/${taskId}/${completed ? '' : 'un'}complete`);
+  const response = await client.post(
+    `/todo/${taskId}/${completed ? '' : 'un'}complete`
+  );
   return response.data;
 }

@@ -21,6 +21,20 @@
           <h3 class="ml-1">{{ task.title }}</h3>
 
           <div
+            v-if="task.dueDate"
+            class="ml-2 task-due-date"
+            :class="{ 'text-red': isOverdue }"
+          >
+            <v-icon
+              small
+              class="mr-1"
+            >
+              mdi-calendar-clock
+            </v-icon>
+            {{ task.dueDate.format('DD.MM.YYYY, HH:mm') }}
+          </div>
+
+          <div
             v-if="task.description"
             class="ml-2"
           >
@@ -105,11 +119,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, type PropType } from 'vue';
+import { computed, onMounted, onUnmounted, ref, type PropType } from 'vue';
 import type { TodoTask } from '../models';
 import { completeTask, deleteTask } from '../api/todoTasks';
+import moment from 'moment';
 
-defineProps({
+const props = defineProps({
   task: {
     type: Object as PropType<TodoTask>,
     required: true,
@@ -123,13 +138,32 @@ const textBlock = ref<HTMLElement | null>(null);
 const previewHeight = ref(0);
 const textHeight = ref(0);
 
+const now = ref(moment());
+
 onMounted(async () => {
   if (textBlock.value) {
     textHeight.value = textBlock.value.scrollHeight;
     const lineHeight = parseFloat(getComputedStyle(textBlock.value).lineHeight);
     previewHeight.value = lineHeight * 2; // show 2 lines preview
   }
+
+  // Calculate ms until the next full minute
+  const delay = 60_000 - (Date.now() % 60_000);
+
+  const timeout = setTimeout(() => {
+    now.value = moment();
+
+    const interval = setInterval(() => {
+      now.value = moment();
+    }, 60_000);
+
+    onUnmounted(() => clearInterval(interval));
+  }, delay);
+
+  onUnmounted(() => clearTimeout(timeout));
 });
+
+const isOverdue = computed(() => props.task.dueDate?.isBefore(now.value));
 
 const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
