@@ -41,17 +41,18 @@
             <div
               ref="textBlock"
               class="task-description"
-              :class="{ 'text-preview-fade': !descriptionExpanded }"
+              :class="{ 'text-preview-fade': fadeDescription }"
               :style="{
-                maxHeight: descriptionExpanded
-                  ? textHeight + 'px'
-                  : previewHeight + 'px',
+                maxHeight: fadeDescription
+                  ? previewHeight + 'px'
+                  : textHeight + 'px',
               }"
             >
               {{ task.description }}
             </div>
 
             <v-btn
+              v-if="displayPreview"
               variant="text"
               size="small"
               class="mt-1 px-0"
@@ -119,10 +120,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, type PropType } from 'vue';
-import type { TodoTask } from '../models';
-import { completeTask, deleteTask } from '../api/todoTasks';
 import moment from 'moment';
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch,
+  type PropType,
+} from 'vue';
+import { completeTask, deleteTask } from '../api/todoTasks';
+import type { TodoTask } from '../models';
 
 const props = defineProps({
   task: {
@@ -134,21 +144,28 @@ const props = defineProps({
 const emit = defineEmits<{ 'task-clicked': [] }>();
 
 const descriptionExpanded = ref(false);
-const textBlock = ref<HTMLElement | null>(null);
+const textBlock = useTemplateRef('textBlock');
 const previewHeight = ref(0);
 const textHeight = ref(0);
+const displayPreview = ref(false);
+
+const updatePreviewDetails = async () => {
+  await nextTick();
+  if (textBlock.value) {
+    textHeight.value = textBlock.value.scrollHeight;
+    const lineHeight = parseFloat(getComputedStyle(textBlock.value).lineHeight);
+    previewHeight.value = lineHeight * 2; // show 2 lines preview
+    displayPreview.value = textHeight.value > previewHeight.value;
+  }
+};
 
 const now = ref(moment());
 
 let currentTimeTimeout: number | undefined;
 let currentTimeInterval: number | undefined;
 
-onMounted(async () => {
-  if (textBlock.value) {
-    textHeight.value = textBlock.value.scrollHeight;
-    const lineHeight = parseFloat(getComputedStyle(textBlock.value).lineHeight);
-    previewHeight.value = lineHeight * 2; // show 2 lines preview
-  }
+onMounted(() => {
+  updatePreviewDetails();
 
   // Calculate ms until the next full minute
   const delay = 60_000 - (Date.now() % 60_000);
@@ -167,7 +184,11 @@ onUnmounted(() => {
   clearInterval(currentTimeInterval);
 });
 
+watch(() => props.task.description, updatePreviewDetails);
+
 const isOverdue = computed(() => props.task.dueDate?.isBefore(now.value));
+
+const fadeDescription = computed(() => displayPreview && !descriptionExpanded);
 
 const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
