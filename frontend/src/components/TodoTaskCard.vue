@@ -39,26 +39,26 @@
             class="ml-2"
           >
             <div
-              ref="textBlock"
+              ref="descriptionBlock"
               class="task-description"
-              :class="{ 'text-preview-fade': fadeDescription }"
+              :class="{ 'text-preview-fade': shouldFadeDescription }"
               :style="{
-                maxHeight: fadeDescription
-                  ? previewHeight + 'px'
-                  : textHeight + 'px',
+                maxHeight: shouldFadeDescription
+                  ? description.collapsedHeight + 'px'
+                  : description.fullHeight + 'px',
               }"
             >
               {{ task.description }}
             </div>
 
             <v-btn
-              v-if="displayPreview"
+              v-if="description.previewEnabled"
               variant="text"
               size="small"
               class="mt-1 px-0"
-              @click.stop="descriptionExpanded = !descriptionExpanded"
+              @click.stop="description.expanded = !description.expanded"
             >
-              {{ descriptionExpanded ? 'See less' : 'See more' }}
+              {{ description.expanded ? 'See less' : 'See more' }}
             </v-btn>
           </div>
 
@@ -126,6 +126,7 @@ import {
   nextTick,
   onMounted,
   onUnmounted,
+  reactive,
   ref,
   useTemplateRef,
   watch,
@@ -143,52 +144,61 @@ const props = defineProps({
 
 const emit = defineEmits<{ 'task-clicked': [] }>();
 
-const descriptionExpanded = ref(false);
-const textBlock = useTemplateRef('textBlock');
-const previewHeight = ref(0);
-const textHeight = ref(0);
-const displayPreview = ref(false);
+const description = reactive({
+  element: useTemplateRef('descriptionBlock'),
+  expanded: false,
+  collapsedHeight: 0,
+  fullHeight: 0,
+  previewEnabled: false,
+});
 
-const updatePreviewDetails = async () => {
+const shouldFadeDescription = computed(
+  () => description.previewEnabled && !description.expanded
+);
+
+const recalculateDescriptionHeights = async () => {
   await nextTick();
-  if (textBlock.value) {
-    textHeight.value = textBlock.value.scrollHeight;
-    const lineHeight = parseFloat(getComputedStyle(textBlock.value).lineHeight);
-    previewHeight.value = lineHeight * 2; // show 2 lines preview
-    displayPreview.value = textHeight.value > previewHeight.value;
-  }
+
+  if (!description.element) return;
+
+  description.fullHeight = description.element.scrollHeight;
+  const lineHeight = parseFloat(
+    getComputedStyle(description.element).lineHeight
+  );
+  description.collapsedHeight = lineHeight * 2; // show 2 lines of preview
+  description.previewEnabled =
+    description.fullHeight > description.collapsedHeight;
 };
 
-const now = ref(moment());
+watch(() => props.task.description, recalculateDescriptionHeights, {
+  immediate: true,
+});
 
-let currentTimeTimeout: number | undefined;
-let currentTimeInterval: number | undefined;
+const currentTime = ref(moment());
+const isOverdue = computed(() =>
+  props.task.dueDate?.isBefore(currentTime.value)
+);
+
+let fullMinuteTimeout: number | undefined;
+let minuteTicker: number | undefined;
 
 onMounted(() => {
-  updatePreviewDetails();
-
   // Calculate ms until the next full minute
   const delay = 60_000 - (Date.now() % 60_000);
 
-  currentTimeTimeout = setTimeout(() => {
-    now.value = moment();
+  fullMinuteTimeout = setTimeout(() => {
+    currentTime.value = moment();
 
-    currentTimeInterval = setInterval(() => {
-      now.value = moment();
+    minuteTicker = setInterval(() => {
+      currentTime.value = moment();
     }, 60_000);
   }, delay);
 });
 
 onUnmounted(() => {
-  clearTimeout(currentTimeTimeout);
-  clearInterval(currentTimeInterval);
+  clearTimeout(fullMinuteTimeout);
+  clearInterval(minuteTicker);
 });
-
-watch(() => props.task.description, updatePreviewDetails);
-
-const isOverdue = computed(() => props.task.dueDate?.isBefore(now.value));
-
-const fadeDescription = computed(() => displayPreview && !descriptionExpanded);
 
 const markCompleted = async (taskId: number, completed: boolean) => {
   await completeTask(taskId, completed);
