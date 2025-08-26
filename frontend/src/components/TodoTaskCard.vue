@@ -140,6 +140,9 @@ const textHeight = ref(0);
 
 const now = ref(moment());
 
+let currentTimeTimeout: number | undefined;
+let currentTimeInterval: number | undefined;
+
 onMounted(async () => {
   if (textBlock.value) {
     textHeight.value = textBlock.value.scrollHeight;
@@ -150,17 +153,18 @@ onMounted(async () => {
   // Calculate ms until the next full minute
   const delay = 60_000 - (Date.now() % 60_000);
 
-  const timeout = setTimeout(() => {
+  currentTimeTimeout = setTimeout(() => {
     now.value = moment();
 
-    const interval = setInterval(() => {
+    currentTimeInterval = setInterval(() => {
       now.value = moment();
     }, 60_000);
-
-    onUnmounted(() => clearInterval(interval));
   }, delay);
+});
 
-  onUnmounted(() => clearTimeout(timeout));
+onUnmounted(() => {
+  clearTimeout(currentTimeTimeout);
+  clearInterval(currentTimeInterval);
 });
 
 const isOverdue = computed(() => props.task.dueDate?.isBefore(now.value));
