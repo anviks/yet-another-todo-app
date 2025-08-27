@@ -2,22 +2,26 @@ import moment from 'moment';
 import type { TodoTask } from '../models.ts';
 import client from './client.ts';
 
+export function convertTaskDates(task: TodoTask): TodoTask {
+  return {
+    ...task,
+    createdAt: moment(task.createdAt),
+    dueDate: task.dueDate ? moment(task.dueDate) : null,
+    completedAt: task.completedAt ? moment(task.completedAt) : null,
+  };
+}
+
 export async function getTasks(): Promise<TodoTask[]> {
   const response = await client.get<TodoTask[]>('/todo');
   const tasks = response.data;
-  tasks.forEach((task) => {
-    if (task.dueDate) task.dueDate = moment(task.dueDate);
-  });
 
-  return tasks;
+  return tasks.map(convertTaskDates);
 }
 
 export async function getTask(taskId: number): Promise<TodoTask> {
   const response = await client.get<TodoTask>(`/todo/${taskId}`);
-  const task = response.data;
-  if (task.dueDate) task.dueDate = moment(task.dueDate);
 
-  return task;
+  return convertTaskDates(response.data);
 }
 
 export async function createTask(task: any) {

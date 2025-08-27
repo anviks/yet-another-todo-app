@@ -29,6 +29,8 @@ const vuetify = createVuetify({
 const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_CENTER,
   newestOnTop: false,
+  maxToasts: 5,
+  timeout: 3000,
 };
 
 const app = createApp(App);

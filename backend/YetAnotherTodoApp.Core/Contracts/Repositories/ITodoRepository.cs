@@ -9,6 +9,6 @@ public interface ITodoRepository
     public Task CreateTask(TodoTask task);
     public Task UpdateTask(TodoTask task);
     public Task DeleteTask(int id);
-    public Task<bool> MarkTaskCompleted(int id, bool completed);
+    public Task<TodoTask?> MarkTaskCompleted(int id, bool completed);
     public Task<bool> Exists(int id);
 }

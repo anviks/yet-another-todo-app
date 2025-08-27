@@ -37,14 +37,15 @@ public class TodoRepository(TodoContext db) : ITodoRepository
         await db.SaveChangesAsync();
     }
 
-    public async Task<bool> MarkTaskCompleted(int id, bool completed)
+    public async Task<TodoTask?> MarkTaskCompleted(int id, bool completed)
     {
-        var updated = await db.Tasks
-            .Where(t => t.Id == id)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(t => t.CompletedAt, completed ? DateTime.UtcNow : null));
+        var task = await db.Tasks.FindAsync(id);
+        if (task == null) return null;
 
-        return updated > 0;
+        task.CompletedAt = completed ? DateTime.UtcNow : null;
+        await db.SaveChangesAsync();
+
+        return task;
     }
 
     public async Task<bool> Exists(int id)

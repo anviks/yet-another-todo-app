@@ -58,8 +58,9 @@
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
-import { onMounted, ref } from 'vue';
-import { getTasks } from '../api/todoTasks.ts';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useToast } from 'vue-toastification';
+import { convertTaskDates, getTasks } from '../api/todoTasks.ts';
 import { TodoTaskCard } from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
 
@@ -108,12 +109,45 @@ const beforeLeave = (el: Element) => {
 
 const connection = ref<HubConnection>();
 
+const toast = useToast();
+
 const connectToHub = () => {
   connection.value = new HubConnectionBuilder()
     .withUrl(`${import.meta.env.VITE_BACKEND_URL}/hubs/todo`)
     .build();
 
-  connection.value.on('TasksUpdated', loadTasks);
+  connection.value.on('TaskAdded', (task: TodoTask) => {
+    tasks.value.push(convertTaskDates(task));
+    toast.info(`Task "${task.title}" was added`);
+  });
+
+  connection.value.on('TaskUpdated', (task: TodoTask) => {
+    const index = tasks.value.findIndex((t) => t.id === task.id);
+    if (index !== -1) {
+      tasks.value[index] = convertTaskDates(task);
+      toast.info(`Task "${task.title}" was updated`);
+    }
+  });
+
+  connection.value.on('TaskDeleted', (taskId: number) => {
+    const index = tasks.value.findIndex((t) => t.id === taskId);
+    if (index !== -1) {
+      toast.info(`Task "${tasks.value[index].title}" was deleted`);
+      tasks.value.splice(index, 1);
+    }
+  });
+
+  connection.value.on('TaskCompletionUpdated', (task: TodoTask) => {
+    const index = tasks.value.findIndex((t) => t.id === task.id);
+    if (index !== -1) {
+      tasks.value[index] = convertTaskDates(task);
+      if (task.completedAt) {
+        toast.info(`Task "${task.title}" was marked as completed`);
+      } else {
+        toast.info(`Task "${task.title}" was marked as not completed`);
+      }
+    }
+  });
 
   connection.value.start();
 };
@@ -121,6 +155,10 @@ const connectToHub = () => {
 onMounted(async () => {
   await loadTasks();
   connectToHub();
+});
+
+onUnmounted(async () => {
+  await connection.value?.stop();
 });
 </script>
 

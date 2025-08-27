@@ -78,6 +78,7 @@ import { DatetimePicker } from '../components';
 import { createTask, getTask, updateTask } from '../api/todoTasks';
 import { useRouter } from 'vue-router';
 import type { Map as LeafletMap } from 'leaflet';
+import { useToast } from 'vue-toastification';
 
 const form = useTemplateRef('form');
 
@@ -152,6 +153,8 @@ const focusAt = (latitude: number, longitude: number, zoom: number = 15) => {
   mapObject.value!.setView([latitude, longitude], zoom, { animate: true });
 };
 
+const toast = useToast();
+
 const submitTask = async () => {
   const validationResult = await form.value?.validate();
   if (!validationResult?.valid) {
@@ -166,8 +169,10 @@ const submitTask = async () => {
   isLoading.value = true;
   if (props.taskId) {
     await updateTask(props.taskId, task.value);
+    toast.success('Task updated successfully');
   } else {
     await createTask(task.value);
+    toast.success('Task created successfully');
   }
   isLoading.value = false;
 

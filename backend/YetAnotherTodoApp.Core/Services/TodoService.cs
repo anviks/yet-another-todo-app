@@ -30,7 +30,7 @@ public class TodoService(ITodoRepository todoRepository)
         await todoRepository.DeleteTask(id);
     }
 
-    public async Task<bool> MarkTaskCompleted(int id, bool completed = true)
+    public async Task<TodoTask?> MarkTaskCompleted(int id, bool completed = true)
     {
         return await todoRepository.MarkTaskCompleted(id, completed);
     }

@@ -10,11 +10,6 @@ namespace WebApp.ApiControllers;
 [Route("api/[controller]")]
 public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) : ControllerBase
 {
-    private async Task BroadcastUpdate()
-    {
-        await hub.Clients.All.SendAsync("TasksUpdated");
-    }
-
     [HttpGet]
     public async Task<ActionResult<TodoTask[]>> GetAllTasks()
     {
@@ -36,8 +31,8 @@ public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) :
     public async Task<IActionResult> CreateTask(TodoTask task)
     {
         await todoService.CreateTask(task);
-        await BroadcastUpdate();
-        return CreatedAtAction(nameof(GetAllTasks), new { id = task.Id }, task);
+        await hub.Clients.All.SendAsync("TaskAdded", task);
+        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
     [HttpPut("{id:int}")]
@@ -46,7 +41,7 @@ public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) :
         if (id != task.Id) return BadRequest("Task ID mismatch.");
         if (!await todoService.Exists(id)) return NotFound();
         await todoService.UpdateTask(task);
-        await BroadcastUpdate();
+        await hub.Clients.All.SendAsync("TaskUpdated", task);
         return NoContent();
     }
 
@@ -55,7 +50,7 @@ public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) :
     {
         if (!await todoService.Exists(id)) return NotFound();
         await todoService.DeleteTask(id);
-        await BroadcastUpdate();
+        await hub.Clients.All.SendAsync("TaskDeleted", id);
         return NoContent();
     }
 
@@ -63,9 +58,9 @@ public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) :
     public async Task<IActionResult> MarkTaskCompleted(int id, string actionName)
     {
         var markCompleted = actionName == "complete";
-        var result = await todoService.MarkTaskCompleted(id, markCompleted);
-        if (!result) return NotFound();
-        await BroadcastUpdate();
+        TodoTask? task = await todoService.MarkTaskCompleted(id, markCompleted);
+        if (task == null) return NotFound();
+        await hub.Clients.All.SendAsync("TaskCompletionUpdated", task);
         return NoContent();
     }
 }
