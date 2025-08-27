@@ -86,13 +86,14 @@ const loadTasks = async () => {
   tasks.value = await getTasks();
 };
 
-/* This is needed to fix a bug with transition-group and flexbox.
-   When an element is removed from a flexbox container, its position
-   is calculated incorrectly during the leave transition.
-   By setting explicit width/height/left/top styles before the leave
-   transition starts, we can work around this issue.
+/* 
+  This is needed to fix a bug with transition-group and flexbox.
+  When an element is removed from a flexbox container, its position
+  is calculated incorrectly during the leave transition.
+  By setting explicit width/height/left/top styles before the leave
+  transition starts, we can work around this issue.
 
-   Source: https://stackoverflow.com/a/59650481
+  Source: https://stackoverflow.com/a/59650481
 */
 const beforeLeave = (el: Element) => {
   const div = el as HTMLDivElement;
@@ -123,18 +124,22 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
-.tasks-list-move,
-.tasks-list-enter-active,
-.tasks-list-leave-active {
-  transition: all 0.5s ease;
-}
-.tasks-list-enter-from,
-.tasks-list-leave-to {
-  opacity: 0;
-  transform: translateX(-50px);
-}
-.tasks-list-leave-active {
-  position: absolute;
+<style scoped lang="scss">
+.tasks-list- {
+  &move,
+  &enter-active,
+  &leave-active {
+    transition: all 0.5s ease;
+  }
+
+  &enter-from,
+  &leave-to {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  &leave-active {
+    position: absolute;
+  }
 }
 </style>
