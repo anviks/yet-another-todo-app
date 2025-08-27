@@ -10,13 +10,15 @@ public class TodoContextFactory : IDesignTimeDbContextFactory<TodoContext>
     {
         var optionsBuilder = new DbContextOptionsBuilder<TodoContext>();
 
-        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
-        var db = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "todo_db";
-        var user = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "todo_user";
-        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddUserSecrets<TodoContextFactory>(optional: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-        var connectionString = $"Host={host};Port={port};Database={db};Username={user};Password={password}";
+        var connectionString = config.GetConnectionString("DefaultConnection") ??
+                               throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         optionsBuilder.UseNpgsql(connectionString);
 

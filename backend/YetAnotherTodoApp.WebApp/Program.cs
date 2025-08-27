@@ -3,7 +3,6 @@ using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Services;
 using YetAnotherTodoApp.Data.Context;
 using YetAnotherTodoApp.Data.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApp.Hubs;
 using WebApp.Mapping;
@@ -25,9 +24,6 @@ builder.Services.AddDbContext<TodoContext>(options =>
     options.EnableSensitiveDataLogging();
     options.UseNpgsql(connectionString);
 });
-
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<TodoContext>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
