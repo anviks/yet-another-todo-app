@@ -21,42 +21,27 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<TodoContext>(options =>
 {
-    options.EnableSensitiveDataLogging();
     options.UseNpgsql(connectionString);
 });
 
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddRazorPages();
-builder.Services.AddControllers()
-    .AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; });
-
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllers();
 
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
 builder.Services.AddScoped<TodoService, TodoService>();
-
-var origins = builder.Configuration
-    .GetSection("AllowedOrigins")
-    .GetChildren()
-    .Select(child => child.Value!)
-    .ToArray();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCors", policyBuilder =>
     {
         policyBuilder
-            .WithOrigins(origins)
+            .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowAnyHeader();
     });
 });
 
 builder.Services.AddSignalR();
-
-builder.Services.AddAuthorization();
 
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
 
@@ -83,11 +68,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapRazorPages();
 
 app.MapControllers();
 
