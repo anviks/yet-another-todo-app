@@ -134,6 +134,7 @@ import {
 } from 'vue';
 import { completeTask, deleteTask } from '../api/todoTasks';
 import type { TodoTask } from '../models';
+import _ from 'lodash';
 
 const props = defineProps({
   task: {
@@ -170,6 +171,8 @@ const recalculateDescriptionHeights = async () => {
     description.fullHeight > description.collapsedHeight;
 };
 
+const throttledRecalc = _.throttle(recalculateDescriptionHeights, 50);
+
 watch(() => props.task.description, recalculateDescriptionHeights, {
   immediate: true,
 });
@@ -193,11 +196,15 @@ onMounted(() => {
       currentTime.value = moment();
     }, 60_000);
   }, delay);
+
+  window.addEventListener('resize', throttledRecalc);
 });
 
 onUnmounted(() => {
   clearTimeout(fullMinuteTimeout);
   clearInterval(minuteTicker);
+
+  window.removeEventListener('resize', throttledRecalc);
 });
 
 const markCompleted = async (taskId: number, completed: boolean) => {
