@@ -3,6 +3,7 @@
     <v-col
       cols="12"
       sm="1"
+      class="d-flex justify-center align-center"
     >
       <v-btn
         icon="mdi-plus"
@@ -15,6 +16,7 @@
       sm="5"
     >
       <transition-group
+        v-if="tasks.length > 0"
         name="tasks-list"
         tag="div"
         class="d-flex flex-column ga-3"
@@ -27,6 +29,13 @@
           @task-clicked="focusAt(task.latitude, task.longitude)"
         ></todo-task-card>
       </transition-group>
+
+      <div
+        v-else
+        class="text-center text-h3 ma-8 mt-15 text-grey"
+      >
+        No tasks to show
+      </div>
     </v-col>
     <v-col
       cols="12"
