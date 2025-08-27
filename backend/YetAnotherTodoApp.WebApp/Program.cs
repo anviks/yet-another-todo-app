@@ -3,10 +3,10 @@ using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Services;
 using YetAnotherTodoApp.Data.Context;
 using YetAnotherTodoApp.Data.Repositories;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApp.Hubs;
+using WebApp.Mapping;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +18,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddOpenApi();
 
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<TodoContext>(options =>
 {
@@ -37,21 +37,8 @@ builder.Services.AddControllers()
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
-// builder.Services.AddScoped<IUserRepository, UserRepository>();
-//
-builder.Services.AddScoped<TodoService, TodoService>();
-// builder.Services.AddScoped<UserService, UserService>();
-//
-// builder.Services.AddSingleton<IGameStore, InMemoryGameStore>();
-//
-// builder.Services.Configure<UserLimitsConfig>(builder.Configuration.GetSection("UserLimits"));
-// builder.Services.Configure<EmailConfig>(builder.Configuration.GetSection("Email"));
 
-// builder.Services.AddSession(options =>
-// {
-//     // options.Cookie.Name = "YourSessionCookieName";
-//     options.IdleTimeout = TimeSpan.FromMinutes(20); // Set the session timeout duration
-// });
+builder.Services.AddScoped<TodoService, TodoService>();
 
 var origins = builder.Configuration
     .GetSection("AllowedOrigins")
@@ -73,18 +60,17 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 
-// builder.Services.AddAuthentication("UnoToken")
-//     .AddScheme<AuthenticationSchemeOptions, UnoTokenAuthenticationHandler>("UnoToken", null);
-
 builder.Services.AddAuthorization();
 
-// builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
+builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.MapOpenApi();
     app.UseMigrationsEndPoint();
 }
@@ -94,8 +80,6 @@ else
     // https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-// app.UseSession();
 
 app.UseCors("AllowCors");
 

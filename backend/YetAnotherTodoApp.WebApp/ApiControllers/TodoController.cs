@@ -1,14 +1,20 @@
-﻿using YetAnotherTodoApp.Core.Entities;
+﻿using AutoMapper;
+using YetAnotherTodoApp.Core.Entities;
 using YetAnotherTodoApp.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using WebApp.Dtos;
 using WebApp.Hubs;
 
 namespace WebApp.ApiControllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) : ControllerBase
+public class TodoController(
+    TodoService todoService,
+    IHubContext<TodoHub> hub,
+    IMapper mapper
+) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<TodoTask[]>> GetAllTasks()
@@ -24,20 +30,23 @@ public class TodoController(TodoService todoService, IHubContext<TodoHub> hub) :
         {
             return NotFound();
         }
+
         return Ok(task);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTask(TodoTask task)
+    public async Task<IActionResult> CreateTask(TodoTaskDto taskDto)
     {
+        var task = mapper.Map<TodoTask>(taskDto);
         await todoService.CreateTask(task);
         await hub.Clients.All.SendAsync("TaskAdded", task);
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateTask(int id, TodoTask task)
+    public async Task<IActionResult> UpdateTask(int id, TodoTaskDto taskDto)
     {
+        var task = mapper.Map<TodoTask>(taskDto);
         if (id != task.Id) return BadRequest("Task ID mismatch.");
         if (!await todoService.Exists(id)) return NotFound();
         await todoService.UpdateTask(task);

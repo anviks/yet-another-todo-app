@@ -15,6 +15,4 @@ public class TodoTask
     public DateTime? CompletedAt { get; set; }
 
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-
-    // TODO: Add author
 }
