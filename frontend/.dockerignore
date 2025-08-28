@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/build
+**/out
+**/temp
+.vscode
+.idea
+**/docker-compose*
+**/Dockerfile*
+.env.example
