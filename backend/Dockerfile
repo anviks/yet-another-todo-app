@@ -6,19 +6,19 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["WebApp/WebApp.csproj", "WebApp/"]
-RUN dotnet restore "WebApp/WebApp.csproj"
+COPY ["YetAnotherTodoApp.WebApp/YetAnotherTodoApp.WebApp.csproj", "YetAnotherTodoApp.WebApp/"]
+RUN dotnet restore "YetAnotherTodoApp.WebApp/YetAnotherTodoApp.WebApp.csproj"
 
 COPY . .
-WORKDIR "/src/WebApp"
-RUN dotnet build "WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/YetAnotherTodoApp.WebApp"
+RUN dotnet build "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENTRYPOINT ["dotnet", "WebApp.dll"]
+ENTRYPOINT ["dotnet", "YetAnotherTodoApp.WebApp.dll"]

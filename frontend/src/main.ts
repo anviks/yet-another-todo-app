@@ -5,7 +5,7 @@ import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import Toast, { POSITION, type PluginOptions } from 'vue-toastification';
-import L from 'leaflet'
+import 'leaflet';
 
 import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/dist/vuetify.min.css';
