@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Services;
 using YetAnotherTodoApp.Data.Context;

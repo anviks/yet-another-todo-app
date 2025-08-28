@@ -1,6 +1,6 @@
 commands.md
-.env
-YetAnotherTodoApp.WebApp/wwwroot/lib/
+.env*
+!.env.example
 
 # Common IntelliJ Platform excludes
 
