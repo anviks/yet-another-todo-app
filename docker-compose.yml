@@ -1,0 +1,53 @@
+﻿services:
+  db:
+    image: postgres:16
+    container_name: todoapp-db
+    ports:
+      - 5432:5432
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+    env_file:
+      - backend/.env
+    restart: on-failure
+    networks:
+      - todoapp-network
+    logging:
+      options:
+        max-size: 10m
+        max-file: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - backend/.env
+    restart: on-failure
+    networks:
+      - todoapp-network
+    environment:
+      ASPNETCORE_URLS: "http://+:80"
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file:
+      - frontend/.env
+    restart: on-failure
+    networks:
+      - todoapp-network
+    depends_on:
+      - backend
+    ports:
+      - 8080:80
+
+volumes:
+  db-volume:
+
+networks:
+  todoapp-network:
