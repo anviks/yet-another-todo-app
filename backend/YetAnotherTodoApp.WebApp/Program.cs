@@ -63,12 +63,12 @@ else
     app.UseHsts();
 }
 
-app.UseCors("AllowCors");
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("AllowCors");
 
 app.MapControllers();
 
