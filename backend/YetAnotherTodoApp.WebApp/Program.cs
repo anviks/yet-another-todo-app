@@ -9,7 +9,7 @@ using WebApp.Mapping;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-          throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -18,10 +18,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<TodoContext>(options =>
-{
-    options.UseNpgsql(connectionString);
-});
+builder.Services.AddDbContext<TodoContext>(options => { options.UseNpgsql(connectionString); });
 
 builder.Services.AddControllers();
 
@@ -29,12 +26,15 @@ builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
 builder.Services.AddScoped<TodoService, TodoService>();
 
+var frontendOrigin = builder.Configuration.GetValue<string>("FRONTEND_URL")
+                     ?? throw new InvalidOperationException("FRONTEND_URL is not set");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCors", policyBuilder =>
     {
         policyBuilder
-            .SetIsOriginAllowed(origin => true)
+            .WithOrigins(frontendOrigin)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
