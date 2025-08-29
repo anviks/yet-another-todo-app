@@ -4,7 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherTodoApp.WebApp", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4D87B28B-3857-4383-943D-E84037372EEC}"
 	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
 		Dockerfile = Dockerfile
 		.dockerignore = .dockerignore
 		.gitignore = .gitignore

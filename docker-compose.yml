@@ -46,6 +46,19 @@
     ports:
       - 8080:80
 
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - backend/.env
+    networks:
+      - todoapp-network
+    depends_on:
+      - db
+    command: >
+      dotnet ef database update
+
 volumes:
   db-volume:
 
