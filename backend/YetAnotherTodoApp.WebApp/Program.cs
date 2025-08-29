@@ -46,7 +46,21 @@ builder.Services.AddSignalR();
 
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
 
-var app = builder.Build();
+WebApplication app = builder.Build();
+
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TodoContext>();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"An error occurred while migrating the database: {ex.Message}");
+        throw;
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
