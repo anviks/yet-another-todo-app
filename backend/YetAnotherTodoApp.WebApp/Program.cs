@@ -26,15 +26,16 @@ builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
 builder.Services.AddScoped<TodoService, TodoService>();
 
-var frontendOrigin = builder.Configuration.GetValue<string>("FRONTEND_URL")
-                     ?? throw new InvalidOperationException("FRONTEND_URL is not set");
+var origins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>()!;
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCors", policyBuilder =>
     {
         policyBuilder
-            .WithOrigins(frontendOrigin)
+            .WithOrigins(origins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
