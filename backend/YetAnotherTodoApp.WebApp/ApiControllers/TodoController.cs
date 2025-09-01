@@ -47,8 +47,8 @@ public class TodoController(
     public async Task<IActionResult> UpdateTask(int id, TodoTaskDto taskDto)
     {
         var task = mapper.Map<TodoTask>(taskDto);
-        if (id != task.Id) return BadRequest("Task ID mismatch.");
         if (!await todoService.Exists(id)) return NotFound();
+        task.Id = id;
         await todoService.UpdateTask(task);
         await hub.Clients.All.SendAsync("TaskUpdated", task);
         return NoContent();
