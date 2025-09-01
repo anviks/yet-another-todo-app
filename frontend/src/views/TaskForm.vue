@@ -167,14 +167,17 @@ const submitTask = async () => {
   }
 
   isLoading.value = true;
-  if (props.taskId) {
-    await updateTask(props.taskId, task.value);
-    toast.success('Task updated successfully');
-  } else {
-    await createTask(task.value);
-    toast.success('Task created successfully');
+  try {
+    if (props.taskId) {
+      await updateTask(props.taskId, task.value);
+      toast.success('Task updated successfully');
+    } else {
+      await createTask(task.value);
+      toast.success('Task created successfully');
+    }
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
 
   await router.push({ name: 'home' });
 };
