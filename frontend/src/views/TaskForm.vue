@@ -30,22 +30,18 @@
         label="Location"
       >
         <template #default>
-          <l-map
-            style="height: 500px; width: 100%"
-            :zoom="zoom"
-            :center="center"
+          <leaflet-map-wrapper
+            ref="mapRef"
             @click="addMarker"
             @ready="onMapReady"
           >
-            <l-tile-layer
-              :url="url"
-              :attribution="attribution"
-            ></l-tile-layer>
-            <l-marker
-              v-if="marker"
-              :lat-lng="marker"
-            />
-          </l-map>
+            <template #markers>
+              <l-marker
+                v-if="marker"
+                :lat-lng="marker"
+              />
+            </template>
+          </leaflet-map-wrapper>
         </template>
       </v-input>
     </div>
@@ -70,17 +66,17 @@
 </template>
 
 <script setup lang="ts">
-import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
-import type { LatLng } from 'leaflet-geosearch/dist/providers/provider.js';
+import { LMarker } from '@vue-leaflet/vue-leaflet';
+import type { LatLng, LatLngLiteral } from 'leaflet';
 import type { Moment } from 'moment';
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
-import { DatetimePicker } from '../components';
-import { createTask, getTask, updateTask } from '../api/todoTasks';
 import { useRouter } from 'vue-router';
-import type { Map as LeafletMap } from 'leaflet';
 import { useToast } from 'vue-toastification';
+import { createTask, getTask, updateTask } from '../api/todoTasks';
+import { DatetimePicker, LeafletMapWrapper } from '../components';
 
 const form = useTemplateRef('form');
+const mapRef = useTemplateRef('mapRef');
 
 const props = defineProps({
   taskId: {
@@ -105,7 +101,6 @@ const task = ref<TodoTaskForm>({
   longitude: 0.0,
 });
 
-const mapObject = ref<LeafletMap>();
 const router = useRouter();
 const taskLoaded = ref(false);
 const isLoading = ref(false);
@@ -123,34 +118,20 @@ const rules = {
   location: [(value: LatLng) => !!value || 'Location is required'],
 };
 
-const marker = ref<LatLng>();
-
-const url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const attribution =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-const zoom = ref(1);
-const center = ref<[number, number]>([0, 0]);
+const marker = ref<LatLngLiteral>();
 
 const addMarker = (event: { latlng: LatLng }) => {
   marker.value = event.latlng;
 };
 
-const onMapReady = (map: LeafletMap) => {
-  mapObject.value = map;
-
+const onMapReady = () => {
   if (!props.taskId && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
-        focusAt(position.coords.latitude, position.coords.longitude, 13);
+        mapRef.value?.focusAt(position.coords.latitude, position.coords.longitude, 13);
       }
     );
   }
-};
-
-const focusAt = (latitude: number, longitude: number, zoom: number = 15) => {
-  if (!mapObject.value) return;
-  mapObject.value!.setView([latitude, longitude], zoom, { animate: true });
 };
 
 const toast = useToast();
@@ -191,9 +172,9 @@ onMounted(async () => {
   }
 });
 
-watch([mapObject, taskLoaded], ([mapValue, isTaskLoaded]) => {
+watch([() => mapRef.value?.mapObject, taskLoaded], ([mapValue, isTaskLoaded]) => {
   if (mapValue && isTaskLoaded) {
-    focusAt(task.value.latitude, task.value.longitude, 13);
+    mapRef.value?.focusAt(task.value.latitude, task.value.longitude, 13);
   }
 });
 </script>

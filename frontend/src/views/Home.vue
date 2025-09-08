@@ -26,7 +26,7 @@
           v-for="task in tasks"
           :key="task.id"
           :task="task"
-          @task-clicked="focusAt(task.latitude, task.longitude)"
+          @task-clicked="mapRef?.focusAt(task.latitude, task.longitude)"
         ></todo-task-card>
       </transition-group>
 
@@ -41,56 +41,32 @@
       cols="12"
       sm="6"
     >
-      <l-map
-        style="height: 500px; width: 100%"
-        :zoom="zoom"
-        :center="center"
-        @ready="onMapReady"
-      >
-        <l-tile-layer
-          :url="url"
-          :attribution="attribution"
-        ></l-tile-layer>
-
-        <l-marker
-          v-for="task in tasks"
-          :key="task.id + '-' + task.latitude + '-' + task.longitude"
-          :lat-lng="[task.latitude, task.longitude]"
-          @click="focusAt(task.latitude, task.longitude)"
-        />
-      </l-map>
+      <leaflet-map-wrapper ref="mapRef">
+        <template #markers>
+          <l-marker
+            v-for="task in tasks"
+            :key="task.id + '-' + task.latitude + '-' + task.longitude"
+            :lat-lng="[task.latitude, task.longitude]"
+            @click="mapRef?.focusAt(task.latitude, task.longitude)"
+          />
+        </template>
+      </leaflet-map-wrapper>
     </v-col>
   </v-row>
 </template>
 
 <script setup lang="ts">
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
-import { LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet';
-import type { Map as LeafletMap } from 'leaflet';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { LMarker } from '@vue-leaflet/vue-leaflet';
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { useToast } from 'vue-toastification';
 import { convertTaskDates, getTasks } from '../api/todoTasks.ts';
-import { TodoTaskCard } from '../components/index.ts';
+import { LeafletMapWrapper, TodoTaskCard } from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
 
+const mapRef = useTemplateRef('mapRef');
+
 const tasks = ref<TodoTask[]>([]);
-const mapObject = ref<LeafletMap>();
-
-const zoom = ref(1);
-const center = ref<[number, number]>([0, 0]);
-
-const url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const attribution =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-const onMapReady = (map: LeafletMap) => {
-  mapObject.value = map;
-};
-
-const focusAt = (latitude: number, longitude: number) => {
-  if (!mapObject.value) return;
-  mapObject.value.setView([latitude, longitude], 15, { animate: true });
-};
 
 const loadTasks = async () => {
   tasks.value = await getTasks();
