@@ -27,6 +27,8 @@
           :key="task.id"
           :task="task"
           @task-clicked="mapRef?.focusAt(task.latitude, task.longitude)"
+          @task-deleted="onTaskDelete(task.id)"
+          @task-completion="onTaskMarkCompletion(task.id, $event)"
         ></todo-task-card>
       </transition-group>
 
@@ -60,7 +62,12 @@ import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { LMarker } from '@vue-leaflet/vue-leaflet';
 import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { useToast } from 'vue-toastification';
-import { convertTaskDates, getTasks } from '../api/todoTasks.ts';
+import {
+  markTaskCompletion,
+  convertTaskDates,
+  deleteTask,
+  getTasks,
+} from '../api/todoTasks.ts';
 import { LeafletMapWrapper, TodoTaskCard } from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
 
@@ -93,7 +100,6 @@ const beforeLeave = (el: Element) => {
 };
 
 const connection = ref<HubConnection>();
-
 const toast = useToast();
 
 const connectToHub = () => {
@@ -101,9 +107,9 @@ const connectToHub = () => {
     .withUrl(`${import.meta.env.VITE_BACKEND_URL}/hubs/todo`)
     .build();
 
-  connection.value.on('TaskAdded', (task: TodoTask) => {
+  connection.value.on('TaskCreated', (task: TodoTask) => {
     tasks.value.push(convertTaskDates(task));
-    toast.info(`Task "${task.title}" was added`);
+    toast.info(`Task "${task.title}" was created`);
   });
 
   connection.value.on('TaskUpdated', (task: TodoTask) => {
@@ -114,27 +120,42 @@ const connectToHub = () => {
     }
   });
 
-  connection.value.on('TaskDeleted', (taskId: number) => {
+  connection.value.on('TaskDeleted', (taskId: number, connectionId: string) => {
     const index = tasks.value.findIndex((t) => t.id === taskId);
     if (index !== -1) {
-      toast.info(`Task "${tasks.value[index].title}" was deleted`);
+      if (connectionId === connection.value?.connectionId) {
+        toast.success(`Successfully deleted task "${tasks.value[index].title}"`);
+      } else {
+        toast.info(`Task "${tasks.value[index].title}" was deleted`);
+      }
       tasks.value.splice(index, 1);
     }
   });
 
-  connection.value.on('TaskCompletionUpdated', (task: TodoTask) => {
+  connection.value.on('TaskCompletionUpdated', (task: TodoTask, connectionId: string) => {
     const index = tasks.value.findIndex((t) => t.id === task.id);
     if (index !== -1) {
       tasks.value[index] = convertTaskDates(task);
-      if (task.completedAt) {
-        toast.info(`Task "${task.title}" was marked as completed`);
+      const completed = !!task.completedAt;
+      const completion = completed ? 'completed' : 'not completed';
+      
+      if (connectionId === connection.value?.connectionId) {
+        toast.success(`Successfully marked task "${task.title}" as ${completion}`)
       } else {
-        toast.info(`Task "${task.title}" was marked as not completed`);
+        toast.info(`Task "${task.title}" was marked as ${completion}`);
       }
     }
   });
 
   connection.value.start();
+};
+
+const onTaskDelete = async (taskId: number) => {
+  await deleteTask(taskId, connection.value?.connectionId ?? undefined);
+};
+
+const onTaskMarkCompletion = async (taskId: number, completed: boolean) => {
+  await markTaskCompletion(taskId, completed, connection.value?.connectionId ?? undefined);
 };
 
 onMounted(async () => {

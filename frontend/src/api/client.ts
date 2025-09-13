@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const client = axios.create({
+const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL + '/api',
   timeout: 10000,
 });
 
-export default client;
+export default apiClient;

@@ -39,7 +39,7 @@ public class TodoController(
     {
         var task = mapper.Map<TodoTask>(taskDto);
         await todoService.CreateTask(task);
-        await hub.Clients.All.SendAsync("TaskAdded", task);
+        await hub.Clients.All.SendAsync("TaskCreated", task);
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
@@ -59,7 +59,11 @@ public class TodoController(
     {
         if (!await todoService.Exists(id)) return NotFound();
         await todoService.DeleteTask(id);
-        await hub.Clients.All.SendAsync("TaskDeleted", id);
+        await hub.Clients.All.SendAsync(
+            "TaskDeleted",
+            id,
+            Request.Headers["X-Connection-Id"].FirstOrDefault()
+        );
         return NoContent();
     }
 
@@ -69,7 +73,11 @@ public class TodoController(
         var markCompleted = actionName == "complete";
         TodoTask? task = await todoService.MarkTaskCompleted(id, markCompleted);
         if (task == null) return NotFound();
-        await hub.Clients.All.SendAsync("TaskCompletionUpdated", task);
+        await hub.Clients.All.SendAsync(
+            "TaskCompletionUpdated",
+            task,
+            Request.Headers["X-Connection-Id"].FirstOrDefault()
+        );
         return NoContent();
     }
 }

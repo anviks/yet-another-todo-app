@@ -151,10 +151,10 @@ const submitTask = async () => {
   try {
     if (props.taskId) {
       await updateTask(props.taskId, task.value);
-      toast.success('Task updated successfully');
+      toast.success(`Successfully updated task "${task.value.title}"`);
     } else {
       await createTask(task.value);
-      toast.success('Task created successfully');
+      toast.success(`Successfully created task "${task.value.title}"`);
     }
   } finally {
     isLoading.value = false;

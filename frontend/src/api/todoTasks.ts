@@ -1,6 +1,6 @@
 import moment from 'moment';
 import type { TodoTask } from '../models.ts';
-import client from './client.ts';
+import apiRequest from './api.ts';
 
 export function convertTaskDates(task: TodoTask): TodoTask {
   return {
@@ -12,36 +12,50 @@ export function convertTaskDates(task: TodoTask): TodoTask {
 }
 
 export async function getTasks(): Promise<TodoTask[]> {
-  const response = await client.get<TodoTask[]>('/todo');
-  const tasks = response.data;
-
+  const tasks = await apiRequest<TodoTask[]>({ method: 'GET', url: '/todo' });
   return tasks.map(convertTaskDates);
 }
 
 export async function getTask(taskId: number): Promise<TodoTask> {
-  const response = await client.get<TodoTask>(`/todo/${taskId}`);
-
-  return convertTaskDates(response.data);
+  const task = await apiRequest<TodoTask>({
+    method: 'GET',
+    url: `/todo/${taskId}`,
+  });
+  return convertTaskDates(task);
 }
 
 export async function createTask(task: any) {
-  const response = await client.post('/todo', task);
-  return response.data;
+  return await apiRequest({ method: 'POST', url: '/todo', data: task });
 }
 
 export async function updateTask(taskId: number, task: any) {
-  const response = await client.put(`/todo/${taskId}`, task);
-  return response.data;
+  return await apiRequest({
+    method: 'PUT',
+    url: `/todo/${taskId}`,
+    data: task,
+  });
 }
 
-export async function deleteTask(taskId: number) {
-  const response = await client.delete(`/todo/${taskId}`);
-  return response.data;
+function withConnectionHeader(connectionId?: string) {
+  return connectionId ? { 'X-Connection-Id': connectionId } : {};
 }
 
-export async function completeTask(taskId: number, completed: boolean = true) {
-  const response = await client.post(
-    `/todo/${taskId}/${completed ? '' : 'un'}complete`
-  );
-  return response.data;
+export async function deleteTask(taskId: number, connectionId?: string) {
+  return await apiRequest({
+    method: 'DELETE',
+    url: `/todo/${taskId}`,
+    headers: { ...withConnectionHeader(connectionId) },
+  });
+}
+
+export async function markTaskCompletion(
+  taskId: number,
+  completed: boolean = true,
+  connectionId?: string
+) {
+  return await apiRequest({
+    method: 'POST',
+    url: `/todo/${taskId}/${completed ? '' : 'un'}complete`,
+    headers: { ...withConnectionHeader(connectionId) },
+  });
 }

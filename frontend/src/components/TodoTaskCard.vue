@@ -3,7 +3,7 @@
     <v-checkbox
       hide-details
       :model-value="!!task.completedAt"
-      @update:model-value="markCompleted(task.id, $event!)"
+      @update:model-value="markCompletion($event!)"
     />
 
     <v-card
@@ -105,7 +105,7 @@
                   <v-btn
                     variant="elevated"
                     color="error"
-                    @click="confirmDelete(task.id)"
+                    @click="confirmDelete"
                   >
                     Delete
                   </v-btn>
@@ -120,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import _ from 'lodash';
 import moment from 'moment';
 import {
   computed,
@@ -132,9 +133,7 @@ import {
   watch,
   type PropType,
 } from 'vue';
-import { completeTask, deleteTask } from '../api/todoTasks';
 import type { TodoTask } from '../models';
-import _ from 'lodash';
 
 const props = defineProps({
   task: {
@@ -143,7 +142,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits<{ 'task-clicked': [] }>();
+const emit = defineEmits<{ 'task-clicked': [], 'task-deleted': [], 'task-completion': [completed: boolean] }>();
 
 const description = reactive({
   element: useTemplateRef('descriptionBlock'),
@@ -207,12 +206,12 @@ onUnmounted(() => {
   window.removeEventListener('resize', throttledRecalc);
 });
 
-const markCompleted = async (taskId: number, completed: boolean) => {
-  await completeTask(taskId, completed);
+const markCompletion = (completed: boolean) => {
+  emit('task-completion', completed);
 };
 
-const confirmDelete = async (taskId: number) => {
-  await deleteTask(taskId);
+const confirmDelete = () => {
+  emit('task-deleted');
 };
 </script>
 
