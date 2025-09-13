@@ -68,11 +68,10 @@
 <script setup lang="ts">
 import { LMarker } from '@vue-leaflet/vue-leaflet';
 import type { LatLng, LatLngLiteral } from 'leaflet';
-import type { Moment } from 'moment';
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import { createTask, getTask, updateTask } from '../api/todoTasks';
+import { createTask, getTask, updateTask, type TodoTaskPayload } from '../api/todoTasks';
 import { DatetimePicker, LeafletMapWrapper } from '../components';
 
 const form = useTemplateRef('form');
@@ -85,15 +84,7 @@ const props = defineProps({
   },
 });
 
-interface TodoTaskForm {
-  title: string;
-  description: string;
-  dueDate: Moment | null;
-  latitude: number;
-  longitude: number;
-}
-
-const task = ref<TodoTaskForm>({
+const task = ref<TodoTaskPayload>({
   title: '',
   description: '',
   dueDate: null,
