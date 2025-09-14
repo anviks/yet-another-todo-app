@@ -1,5 +1,31 @@
 <template>
   <v-row>
+    <v-expansion-panels>
+      <v-expansion-panel title="Filter tasks">
+        <template #text>
+          <v-text-field
+            v-model="tasksFilter.q"
+            prepend-inner-icon="mdi-magnify"
+            label="Search by description"
+            hide-details
+          />
+
+          <tristate-checkbox
+            v-model="tasksFilter.completed"
+            :label="completionCheckboxLabel"
+          />
+
+          <datetime-picker
+            v-model="tasksFilter.dueDate"
+            type="date"
+            label="Due on"
+          />
+        </template>
+      </v-expansion-panel>
+    </v-expansion-panels>
+  </v-row>
+
+  <v-row>
     <v-col
       cols="12"
       sm="1"
@@ -28,7 +54,7 @@
           :task="task"
           @task-deleted="onTaskDelete(task.id)"
           @task-completion="onTaskMarkCompletion(task.id, $event)"
-        ></todo-task-card>
+        />
       </transition-group>
 
       <div
@@ -43,22 +69,46 @@
 
 <script setup lang="ts">
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
-import { onMounted, onUnmounted, ref } from 'vue';
+import _ from 'lodash';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import {
-  markTaskCompletion,
   convertTaskDates,
   deleteTask,
   getTasks,
+  markTaskCompletion,
+  type TodoTaskFilter,
 } from '../api/todoTasks.ts';
-import { TodoTaskCard } from '../components/index.ts';
+import {
+  DatetimePicker,
+  TodoTaskCard,
+  TristateCheckbox,
+} from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
+
+const tasksFilter = reactive<TodoTaskFilter>({
+  completed: null,
+  dueDate: null,
+  q: null,
+});
 
 const tasks = ref<TodoTask[]>([]);
 
-const loadTasks = async () => {
-  tasks.value = await getTasks();
-};
+const loadTasks = _.debounce(async () => {
+  tasks.value = await getTasks(tasksFilter);
+}, 300);
+
+watch(tasksFilter, loadTasks, { deep: true });
+
+const completionCheckboxLabel = computed(() => {
+  if (tasksFilter.completed === true) {
+    return 'Show only completed tasks';
+  } else if (tasksFilter.completed === false) {
+    return 'Show only uncompleted tasks';
+  } else {
+    return "Don't filter by completion";
+  }
+});
 
 /* 
   This is needed to fix a bug with transition-group and flexbox.

@@ -1,15 +1,27 @@
 ﻿using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using YetAnotherTodoApp.Core.Dtos;
 using YetAnotherTodoApp.Data.Context;
 
 namespace YetAnotherTodoApp.Data.Repositories;
 
 public class TodoRepository(TodoContext db) : ITodoRepository
 {
-    public async Task<List<TodoTask>> GetAllTasks()
+    public async Task<List<TodoTask>> GetAllTasks(TodoTaskFilter? filter = null)
     {
-        return await db.Tasks.OrderBy(t => t.CreatedAt).ToListAsync();
+        var tasks = db.Tasks.AsQueryable();
+
+        if (filter?.Completed.HasValue ?? false)
+            tasks = tasks.Where(t => (t.CompletedAt != null) == filter.Completed);
+        if (filter?.DueAfter.HasValue ?? false)
+            tasks = tasks.Where(t => t.DueDate.HasValue && t.DueDate.Value >= filter.DueAfter.Value);
+        if (filter?.DueBefore.HasValue ?? false)
+            tasks = tasks.Where(t => t.DueDate.HasValue && t.DueDate.Value <= filter.DueBefore.Value);
+        if (!string.IsNullOrEmpty(filter?.Q))
+            tasks = tasks.Where(t => t.Description.ToLower().Contains(filter.Q.ToLower()));
+
+        return await tasks.OrderBy(t => t.CreatedAt).ToListAsync();
     }
 
     public async Task<TodoTask?> GetTask(int id)

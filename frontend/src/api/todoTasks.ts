@@ -8,6 +8,12 @@ export interface TodoTaskPayload {
   dueDate: Moment | null;
 }
 
+export interface TodoTaskFilter {
+  completed?: boolean | null;
+  dueDate?: Moment | null;
+  q?: string | null; // Search query for description
+}
+
 export function convertTaskDates(task: TodoTask): TodoTask {
   return {
     ...task,
@@ -21,8 +27,20 @@ function withConnectionHeader(connectionId?: string) {
   return connectionId ? { 'X-Connection-Id': connectionId } : {};
 }
 
-export async function getTasks() {
-  const tasks = await apiRequest<TodoTask[]>({ method: 'GET', url: '/todo' });
+export async function getTasks(filter: TodoTaskFilter = {}) {
+  let dueAfter, dueBefore;
+
+  if (filter.dueDate) {
+    dueAfter = filter.dueDate.clone().startOf('day').utc().toISOString();
+    dueBefore = filter.dueDate.clone().endOf('day').utc().toISOString();
+  }
+
+  const tasks = await apiRequest<TodoTask[]>({
+    method: 'GET',
+    url: '/todo',
+    params: { completed: filter.completed, dueAfter, dueBefore, q: filter.q },
+  });
+
   return tasks.map(convertTaskDates);
 }
 
@@ -35,7 +53,11 @@ export async function getTask(taskId: number) {
 }
 
 export async function createTask(taskPayload: TodoTaskPayload) {
-  const task = await apiRequest<TodoTask>({ method: 'POST', url: '/todo', data: taskPayload });
+  const task = await apiRequest<TodoTask>({
+    method: 'POST',
+    url: '/todo',
+    data: taskPayload,
+  });
   return convertTaskDates(task);
 }
 

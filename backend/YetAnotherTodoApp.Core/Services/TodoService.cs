@@ -1,13 +1,14 @@
 ﻿using YetAnotherTodoApp.Core.Contracts.Repositories;
+using YetAnotherTodoApp.Core.Dtos;
 using YetAnotherTodoApp.Core.Entities;
 
 namespace YetAnotherTodoApp.Core.Services;
 
 public class TodoService(ITodoRepository todoRepository)
 {
-    public async Task<List<TodoTask>> GetAllTasks()
+    public async Task<List<TodoTask>> GetAllTasks(TodoTaskFilter filter)
     {
-        return await todoRepository.GetAllTasks();
+        return await todoRepository.GetAllTasks(filter);
     }
 
     public async Task<TodoTask?> GetTask(int id)

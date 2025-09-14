@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using WebApp.Dtos;
 using WebApp.Hubs;
+using YetAnotherTodoApp.Core.Dtos;
 
 namespace WebApp.ApiControllers;
 
@@ -17,9 +18,9 @@ public class TodoController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<TodoTask[]>> GetAllTasks()
+    public async Task<ActionResult<TodoTask[]>> GetAllTasks([FromQuery] TodoTaskFilter filter)
     {
-        return Ok(await todoService.GetAllTasks());
+        return Ok(await todoService.GetAllTasks(filter));
     }
 
     [HttpGet("{id:int}")]

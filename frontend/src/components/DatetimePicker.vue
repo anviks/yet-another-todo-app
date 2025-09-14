@@ -11,7 +11,7 @@
       <template #activator="{ props }">
         <v-text-field
           :model-value="dateFormatted"
-          :label="label === '' ? 'Date' : `${label} (date)`"
+          :label="dateLabel"
           readonly
           v-bind="props"
           clearable
@@ -23,6 +23,7 @@
 
     <!-- Time field -->
     <v-menu
+      v-if="type !== 'date'"
       v-model="timeMenu"
       :close-on-content-click="false"
       transition="scale-transition"
@@ -49,37 +50,44 @@
 
 <script setup lang="ts">
 import moment, { type Moment } from 'moment';
-import { ref, computed, type PropType } from 'vue';
+import { computed, ref } from 'vue';
 
-const props = defineProps({
-  modelValue: {
-    type: Object as PropType<Moment | null>,
-    default: null,
-  },
-  label: {
-    type: String,
-    default: '',
-  },
-});
+const {
+  modelValue = null,
+  label = '',
+  type = 'datetime',
+} = defineProps<{
+  modelValue?: Moment | null;
+  label?: string;
+  type?: 'datetime' | 'date';
+}>();
 
 const emit = defineEmits<{ 'update:modelValue': [value: Moment | null] }>();
 
 const dateMenu = ref(false);
 const timeMenu = ref(false);
 
+const dateLabel = computed(() => {
+  if (type === 'datetime') {
+    return label === '' ? 'Date' : `${label} (date)`;
+  } else {
+    return label;
+  }
+});
+
 const dateFormatted = computed(() =>
   dateValue.value ? moment(dateValue.value).format('DD.MM.YYYY') : ''
 );
 
 const dateValue = computed({
-  get: () => props.modelValue?.toDate() ?? null,
+  get: () => modelValue?.toDate() ?? null,
   set: (newDate: Date | null) => {
     if (!newDate) {
       emit('update:modelValue', null);
       return;
     }
 
-    const m = props.modelValue ? props.modelValue.clone() : moment(newDate);
+    const m = modelValue ? modelValue.clone() : moment(newDate);
     m.set({
       year: newDate.getFullYear(),
       month: newDate.getMonth(),
@@ -90,11 +98,11 @@ const dateValue = computed({
 });
 
 const timeValue = computed({
-  get: () => props.modelValue?.format('HH:mm') ?? '',
+  get: () => modelValue?.format('HH:mm') ?? '',
   set: (newTime: string | null) => {
-    if (!props.modelValue) return;
+    if (!modelValue) return;
     const [h, m] = newTime?.split(':').map(Number) ?? [0, 0];
-    const updated = props.modelValue.clone().set({ hour: h, minute: m });
+    const updated = modelValue.clone().set({ hour: h, minute: m });
     emit('update:modelValue', updated);
   },
 });
