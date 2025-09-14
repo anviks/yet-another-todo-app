@@ -48,7 +48,12 @@
 import { onMounted, ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import { createTask, getTask, updateTask, type TodoTaskPayload } from '../api/todoTasks';
+import {
+  createTask,
+  getTask,
+  updateTask,
+  type TodoTaskPayload,
+} from '../api/todoTasks';
 import { DatetimePicker } from '../components';
 
 const form = useTemplateRef('form');
