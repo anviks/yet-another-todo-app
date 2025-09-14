@@ -142,7 +142,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits<{ 'task-clicked': [], 'task-deleted': [], 'task-completion': [completed: boolean] }>();
+const emit = defineEmits<{
+  'task-clicked': [];
+  'task-deleted': [];
+  'task-completion': [completed: boolean];
+}>();
 
 const description = reactive({
   element: useTemplateRef('descriptionBlock'),

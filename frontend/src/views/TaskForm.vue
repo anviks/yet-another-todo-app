@@ -71,7 +71,12 @@ import type { LatLng, LatLngLiteral } from 'leaflet';
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import { createTask, getTask, updateTask, type TodoTaskPayload } from '../api/todoTasks';
+import {
+  createTask,
+  getTask,
+  updateTask,
+  type TodoTaskPayload,
+} from '../api/todoTasks';
 import { DatetimePicker, LeafletMapWrapper } from '../components';
 
 const form = useTemplateRef('form');
@@ -119,7 +124,11 @@ const onMapReady = () => {
   if (!props.taskId && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
-        mapRef.value?.focusAt(position.coords.latitude, position.coords.longitude, 13);
+        mapRef.value?.focusAt(
+          position.coords.latitude,
+          position.coords.longitude,
+          13
+        );
       }
     );
   }
@@ -163,11 +172,14 @@ onMounted(async () => {
   }
 });
 
-watch([() => mapRef.value?.mapObject, taskLoaded], ([mapValue, isTaskLoaded]) => {
-  if (mapValue && isTaskLoaded) {
-    mapRef.value?.focusAt(task.value.latitude, task.value.longitude, 13);
+watch(
+  [() => mapRef.value?.mapObject, taskLoaded],
+  ([mapValue, isTaskLoaded]) => {
+    if (mapValue && isTaskLoaded) {
+      mapRef.value?.focusAt(task.value.latitude, task.value.longitude, 13);
+    }
   }
-});
+);
 </script>
 
 <style scoped></style>

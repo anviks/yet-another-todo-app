@@ -124,7 +124,9 @@ const connectToHub = () => {
     const index = tasks.value.findIndex((t) => t.id === taskId);
     if (index !== -1) {
       if (connectionId === connection.value?.connectionId) {
-        toast.success(`Successfully deleted task "${tasks.value[index].title}"`);
+        toast.success(
+          `Successfully deleted task "${tasks.value[index].title}"`
+        );
       } else {
         toast.info(`Task "${tasks.value[index].title}" was deleted`);
       }
@@ -132,20 +134,25 @@ const connectToHub = () => {
     }
   });
 
-  connection.value.on('TaskCompletionUpdated', (task: TodoTask, connectionId: string) => {
-    const index = tasks.value.findIndex((t) => t.id === task.id);
-    if (index !== -1) {
-      tasks.value[index] = convertTaskDates(task);
-      const completed = !!task.completedAt;
-      const completion = completed ? 'completed' : 'not completed';
-      
-      if (connectionId === connection.value?.connectionId) {
-        toast.success(`Successfully marked task "${task.title}" as ${completion}`)
-      } else {
-        toast.info(`Task "${task.title}" was marked as ${completion}`);
+  connection.value.on(
+    'TaskCompletionUpdated',
+    (task: TodoTask, connectionId: string) => {
+      const index = tasks.value.findIndex((t) => t.id === task.id);
+      if (index !== -1) {
+        tasks.value[index] = convertTaskDates(task);
+        const completed = !!task.completedAt;
+        const completion = completed ? 'completed' : 'not completed';
+
+        if (connectionId === connection.value?.connectionId) {
+          toast.success(
+            `Successfully marked task "${task.title}" as ${completion}`
+          );
+        } else {
+          toast.info(`Task "${task.title}" was marked as ${completion}`);
+        }
       }
     }
-  });
+  );
 
   connection.value.start();
 };
@@ -155,7 +162,11 @@ const onTaskDelete = async (taskId: number) => {
 };
 
 const onTaskMarkCompletion = async (taskId: number, completed: boolean) => {
-  await markTaskCompletion(taskId, completed, connection.value?.connectionId ?? undefined);
+  await markTaskCompletion(
+    taskId,
+    completed,
+    connection.value?.connectionId ?? undefined
+  );
 };
 
 onMounted(async () => {
