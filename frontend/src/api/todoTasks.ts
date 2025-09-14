@@ -6,8 +6,6 @@ export interface TodoTaskPayload {
   title: string;
   description: string;
   dueDate: Moment | null;
-  latitude: number;
-  longitude: number;
 }
 
 export function convertTaskDates(task: TodoTask): TodoTask {

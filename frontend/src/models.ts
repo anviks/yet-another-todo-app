@@ -5,8 +5,6 @@ export interface TodoTask {
   title: string;
   description: string;
   dueDate: Moment | null;
-  latitude: number;
-  longitude: number;
   isCompleted: boolean;
   createdAt: Moment;
   completedAt: Moment | null;

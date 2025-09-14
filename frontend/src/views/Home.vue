@@ -13,7 +13,7 @@
 
     <v-col
       cols="12"
-      sm="5"
+      sm="11"
     >
       <transition-group
         v-if="tasks.length > 0"
@@ -26,7 +26,6 @@
           v-for="task in tasks"
           :key="task.id"
           :task="task"
-          @task-clicked="mapRef?.focusAt(task.latitude, task.longitude)"
           @task-deleted="onTaskDelete(task.id)"
           @task-completion="onTaskMarkCompletion(task.id, $event)"
         ></todo-task-card>
@@ -39,28 +38,12 @@
         No tasks to show
       </div>
     </v-col>
-    <v-col
-      cols="12"
-      sm="6"
-    >
-      <leaflet-map-wrapper ref="mapRef">
-        <template #markers>
-          <l-marker
-            v-for="task in tasks"
-            :key="task.id + '-' + task.latitude + '-' + task.longitude"
-            :lat-lng="[task.latitude, task.longitude]"
-            @click="mapRef?.focusAt(task.latitude, task.longitude)"
-          />
-        </template>
-      </leaflet-map-wrapper>
-    </v-col>
   </v-row>
 </template>
 
 <script setup lang="ts">
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
-import { LMarker } from '@vue-leaflet/vue-leaflet';
-import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useToast } from 'vue-toastification';
 import {
   markTaskCompletion,
@@ -68,10 +51,8 @@ import {
   deleteTask,
   getTasks,
 } from '../api/todoTasks.ts';
-import { LeafletMapWrapper, TodoTaskCard } from '../components/index.ts';
+import { TodoTaskCard } from '../components/index.ts';
 import type { TodoTask } from '../models.ts';
-
-const mapRef = useTemplateRef('mapRef');
 
 const tasks = ref<TodoTask[]>([]);
 

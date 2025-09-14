@@ -61,14 +61,6 @@
               {{ description.expanded ? 'See less' : 'See more' }}
             </v-btn>
           </div>
-
-          <div class="d-flex ga-1 mt-2">
-            <v-icon>mdi-map-marker</v-icon>
-            <span>
-              {{ task.latitude.toFixed(6) }},
-              {{ task.longitude.toFixed(6) }}
-            </span>
-          </div>
         </div>
 
         <div class="d-flex ga-1">

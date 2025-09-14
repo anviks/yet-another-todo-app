@@ -23,27 +23,6 @@
         label="Due date"
         v-model="task.dueDate"
       />
-
-      <v-input
-        v-model="marker"
-        :rules="rules.location"
-        label="Location"
-      >
-        <template #default>
-          <leaflet-map-wrapper
-            ref="mapRef"
-            @click="addMarker"
-            @ready="onMapReady"
-          >
-            <template #markers>
-              <l-marker
-                v-if="marker"
-                :lat-lng="marker"
-              />
-            </template>
-          </leaflet-map-wrapper>
-        </template>
-      </v-input>
     </div>
 
     <div class="d-flex justify-end">
@@ -66,16 +45,13 @@
 </template>
 
 <script setup lang="ts">
-import { LMarker } from '@vue-leaflet/vue-leaflet';
-import type { LatLng, LatLngLiteral } from 'leaflet';
-import { onMounted, ref, useTemplateRef, watch } from 'vue';
+import { onMounted, ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { createTask, getTask, updateTask, type TodoTaskPayload } from '../api/todoTasks';
-import { DatetimePicker, LeafletMapWrapper } from '../components';
+import { DatetimePicker } from '../components';
 
 const form = useTemplateRef('form');
-const mapRef = useTemplateRef('mapRef');
 
 const props = defineProps({
   taskId: {
@@ -88,8 +64,6 @@ const task = ref<TodoTaskPayload>({
   title: '',
   description: '',
   dueDate: null,
-  latitude: 0.0,
-  longitude: 0.0,
 });
 
 const router = useRouter();
@@ -106,23 +80,6 @@ const rules = {
     (value: string) =>
       value.length <= 2000 || 'Description must be 2000 characters or less',
   ],
-  location: [(value: LatLng) => !!value || 'Location is required'],
-};
-
-const marker = ref<LatLngLiteral>();
-
-const addMarker = (event: { latlng: LatLng }) => {
-  marker.value = event.latlng;
-};
-
-const onMapReady = () => {
-  if (!props.taskId && navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        mapRef.value?.focusAt(position.coords.latitude, position.coords.longitude, 13);
-      }
-    );
-  }
 };
 
 const toast = useToast();
@@ -131,11 +88,6 @@ const submitTask = async () => {
   const validationResult = await form.value?.validate();
   if (!validationResult?.valid) {
     return;
-  }
-
-  if (marker.value) {
-    task.value.latitude = marker.value.lat;
-    task.value.longitude = marker.value.lng;
   }
 
   isLoading.value = true;
@@ -157,15 +109,7 @@ const submitTask = async () => {
 onMounted(async () => {
   if (props.taskId) {
     task.value = await getTask(props.taskId);
-    const { latitude, longitude } = task.value;
-    marker.value = { lat: latitude, lng: longitude };
     taskLoaded.value = true;
-  }
-});
-
-watch([() => mapRef.value?.mapObject, taskLoaded], ([mapValue, isTaskLoaded]) => {
-  if (mapValue && isTaskLoaded) {
-    mapRef.value?.focusAt(task.value.latitude, task.value.longitude, 13);
   }
 });
 </script>

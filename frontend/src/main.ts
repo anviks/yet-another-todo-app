@@ -5,12 +5,10 @@ import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import Toast, { POSITION, type PluginOptions } from 'vue-toastification';
-import 'leaflet';
 
 import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/dist/vuetify.min.css';
 import 'vue-toastification/dist/index.css';
-import 'leaflet/dist/leaflet.css';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 const vuetify = createVuetify({
