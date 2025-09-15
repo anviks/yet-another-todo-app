@@ -30,7 +30,7 @@ cp frontend/.env.example frontend/.env
 
 3. Start all services
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 4. Access the app
@@ -39,8 +39,13 @@ docker-compose up -d --build
 
 5. View logs (optional)
 ```bash
-docker-compose logs -f backend
-docker-compose logs -f frontend
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+6. Seed database with random to-do tasks (optional)
+```bash
+docker compose exec backend dotnet /app/seeder/YetAnotherTodoApp.Seeder.dll --count [count]
 ```
 
 
