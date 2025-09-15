@@ -1,5 +1,5 @@
 <template>
-  <v-row class="mb-10 mt-1">
+  <v-row class="mt-1">
     <div class="d-flex w-100 ga-8 mx-5">
       <v-btn
         icon="mdi-plus"
@@ -32,44 +32,46 @@
     </div>
   </v-row>
 
-  <v-row>
-    <div
-      v-if="isLoading"
-      class="d-flex justify-center align-center h-100"
-    >
-      <v-progress-circular indeterminate />
-    </div>
-
-    <template v-else>
-      <transition-group
-        v-if="tasks.length > 0"
-        name="tasks-list"
-        tag="div"
-        class="d-flex flex-column ga-3"
-        @before-leave="beforeLeave"
-      >
-        <todo-task-card
-          v-for="task in tasks"
-          :key="task.id"
-          :task="task"
-          @task-deleted="onTaskDelete(task.id)"
-          @task-completion="onTaskMarkCompletion(task.id, $event)"
-        />
-      </transition-group>
-
+  <v-row class="my-8">
+    <v-col>
       <div
-        v-else
-        class="text-center text-h3 ma-8 mt-15 text-grey"
+        v-if="isLoading"
+        class="d-flex justify-center align-center w-100"
       >
-        No tasks to show
+        <v-progress-circular indeterminate />
       </div>
-    </template>
+
+      <template v-else>
+        <transition-group
+          v-if="tasks.length > 0"
+          name="tasks-list"
+          tag="div"
+          class="d-flex flex-column ga-3"
+          @before-leave="beforeLeave"
+        >
+          <todo-task-card
+            v-for="task in tasks"
+            :key="task.id"
+            :task="task"
+            @task-deleted="onTaskDelete(task.id)"
+            @task-completion="onTaskMarkCompletion(task.id, $event)"
+          />
+        </transition-group>
+
+        <div
+          v-else
+          class="text-center text-h3 text-grey"
+        >
+          No tasks to show
+        </div>
+      </template>
+    </v-col>
   </v-row>
 
   <v-row
     v-if="!isLoading && tasks.length"
     justify="center"
-    class="mt-10 mb-1"
+    class="mt-8 mb-1"
   >
     <div class="d-flex justify-center align-center ga-16 w-100">
       <v-select
@@ -142,6 +144,7 @@ const hasNextPage = ref(false);
 const loadTasks = async () => {
   isLoading.value = true;
 
+  // await new Promise((resolve) => setTimeout(resolve, 1000000));
   const paginatedTasks = await getTasks(tasksFilter);
   tasks.value = paginatedTasks.items;
   hasNextPage.value = paginatedTasks.hasNextPage;
