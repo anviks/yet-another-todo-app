@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherTodoApp.Core", "Y
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherTodoApp.Data", "YetAnotherTodoApp.Data\YetAnotherTodoApp.Data.csproj", "{B0F50327-A2FA-40B4-B223-3942994E411D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherTodoApp.Seeder", "YetAnotherTodoApp.Seeder\YetAnotherTodoApp.Seeder.csproj", "{7A02692D-1880-40DC-ADAD-3F56E069E326}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,5 +36,9 @@ Global
 		{B0F50327-A2FA-40B4-B223-3942994E411D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0F50327-A2FA-40B4-B223-3942994E411D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0F50327-A2FA-40B4-B223-3942994E411D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A02692D-1880-40DC-ADAD-3F56E069E326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A02692D-1880-40DC-ADAD-3F56E069E326}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A02692D-1880-40DC-ADAD-3F56E069E326}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A02692D-1880-40DC-ADAD-3F56E069E326}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
