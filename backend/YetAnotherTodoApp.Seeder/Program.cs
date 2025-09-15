@@ -10,7 +10,6 @@ using YetAnotherTodoApp.Data.Context;
 var optionsBuilder = new DbContextOptionsBuilder<TodoContext>();
 
 IConfigurationRoot config = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables()
     .Build();
