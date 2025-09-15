@@ -41,28 +41,37 @@
       cols="12"
       sm="11"
     >
-      <transition-group
-        v-if="tasks.length > 0"
-        name="tasks-list"
-        tag="div"
-        class="d-flex flex-column ga-3"
-        @before-leave="beforeLeave"
-      >
-        <todo-task-card
-          v-for="task in tasks"
-          :key="task.id"
-          :task="task"
-          @task-deleted="onTaskDelete(task.id)"
-          @task-completion="onTaskMarkCompletion(task.id, $event)"
-        />
-      </transition-group>
-
       <div
-        v-else
-        class="text-center text-h3 ma-8 mt-15 text-grey"
+        v-if="isLoading"
+        class="d-flex justify-center align-center h-100"
       >
-        No tasks to show
+        <v-progress-circular indeterminate />
       </div>
+
+      <template v-else>
+        <transition-group
+          v-if="tasks.length > 0"
+          name="tasks-list"
+          tag="div"
+          class="d-flex flex-column ga-3"
+          @before-leave="beforeLeave"
+        >
+          <todo-task-card
+            v-for="task in tasks"
+            :key="task.id"
+            :task="task"
+            @task-deleted="onTaskDelete(task.id)"
+            @task-completion="onTaskMarkCompletion(task.id, $event)"
+          />
+        </transition-group>
+
+        <div
+          v-else
+          class="text-center text-h3 ma-8 mt-15 text-grey"
+        >
+          No tasks to show
+        </div>
+      </template>
     </v-col>
   </v-row>
 </template>
@@ -92,10 +101,12 @@ const tasksFilter = reactive<TodoTaskFilter>({
   q: null,
 });
 
+const isLoading = ref(true);
 const tasks = ref<TodoTask[]>([]);
 
 const loadTasks = _.debounce(async () => {
   tasks.value = await getTasks(tasksFilter);
+  isLoading.value = false;
 }, 300);
 
 watch(tasksFilter, loadTasks, { deep: true });
