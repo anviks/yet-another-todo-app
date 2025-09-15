@@ -40,4 +40,9 @@ public class TodoService(ITodoRepository todoRepository)
     {
         return await todoRepository.Exists(id);
     }
+
+    public async Task SaveChanges()
+    {
+        await todoRepository.SaveChanges();
+    }
 }

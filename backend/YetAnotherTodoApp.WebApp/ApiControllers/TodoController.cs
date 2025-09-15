@@ -48,13 +48,15 @@ public class TodoController(
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateTask(int id, TodoTaskDto taskDto)
     {
-        var task = mapper.Map<TodoTask>(taskDto);
-        if (!await todoService.Exists(id)) return NotFound();
-        task.Id = id;
-        await todoService.UpdateTask(task);
-        await hub.Clients.All.SendAsync("TaskUpdated", task);
+        TodoTask? existing = await todoService.GetTask(id);
+        if (existing == null) return NotFound();
 
-        return Ok(task);
+        mapper.Map(taskDto, existing);
+        await todoService.SaveChanges();
+
+        await hub.Clients.All.SendAsync("TaskUpdated", existing);
+
+        return Ok(existing);
     }
 
     [HttpDelete("{id:int}")]
