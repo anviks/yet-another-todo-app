@@ -8,20 +8,32 @@ namespace YetAnotherTodoApp.Data.Repositories;
 
 public class TodoRepository(TodoContext db) : ITodoRepository
 {
-    public async Task<List<TodoTask>> GetAllTasks(TodoTaskFilter? filter = null)
+    public async Task<PaginatedResult<TodoTask>> GetAllTasks(TodoTaskFilter filter)
     {
-        var tasks = db.Tasks.AsQueryable();
+        var query = db.Tasks.AsQueryable();
 
-        if (filter?.Completed.HasValue ?? false)
-            tasks = tasks.Where(t => (t.CompletedAt != null) == filter.Completed);
-        if (filter?.DueAfter.HasValue ?? false)
-            tasks = tasks.Where(t => t.DueDate.HasValue && t.DueDate.Value >= filter.DueAfter.Value);
-        if (filter?.DueBefore.HasValue ?? false)
-            tasks = tasks.Where(t => t.DueDate.HasValue && t.DueDate.Value <= filter.DueBefore.Value);
-        if (!string.IsNullOrEmpty(filter?.Q))
-            tasks = tasks.Where(t => t.Description.ToLower().Contains(filter.Q.ToLower()));
+        if (filter.Completed.HasValue)
+            query = query.Where(t => (t.CompletedAt != null) == filter.Completed);
+        if (filter.DueAfter.HasValue)
+            query = query.Where(t => t.DueDate.HasValue && t.DueDate.Value >= filter.DueAfter.Value);
+        if (filter.DueBefore.HasValue)
+            query = query.Where(t => t.DueDate.HasValue && t.DueDate.Value <= filter.DueBefore.Value);
+        if (!string.IsNullOrEmpty(filter.Q))
+            query = query.Where(t => t.Description.ToLower().Contains(filter.Q.ToLower()));
 
-        return await tasks.OrderBy(t => t.CreatedAt).ToListAsync();
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .OrderBy(t => t.CreatedAt)
+            .ToListAsync();
+
+        return new PaginatedResult<TodoTask>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<TodoTask?> GetTask(int id)

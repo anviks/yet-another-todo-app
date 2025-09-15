@@ -1,5 +1,10 @@
 import { type Moment } from 'moment';
 
+export interface PaginatedResult<T> {
+  items: T[];
+  totalCount: number;
+}
+
 export interface TodoTask {
   id: number;
   title: string;

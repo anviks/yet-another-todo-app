@@ -1,5 +1,5 @@
 import moment, { type Moment } from 'moment';
-import type { TodoTask } from '../models.ts';
+import type { PaginatedResult, TodoTask } from '../types.ts';
 import apiRequest from './api.ts';
 
 export interface TodoTaskPayload {
@@ -12,6 +12,10 @@ export interface TodoTaskFilter {
   completed?: boolean | null;
   dueDate?: Moment | null;
   q?: string | null; // Search query for description
+
+  // Pagination
+  page: number;
+  pageSize: number;
 }
 
 export function convertTaskDates(task: TodoTask): TodoTask {
@@ -27,7 +31,7 @@ function withConnectionHeader(connectionId?: string) {
   return connectionId ? { 'X-Connection-Id': connectionId } : {};
 }
 
-export async function getTasks(filter: TodoTaskFilter = {}) {
+export async function getTasks(filter: TodoTaskFilter) {
   let dueAfter, dueBefore;
 
   if (filter.dueDate) {
@@ -35,13 +39,15 @@ export async function getTasks(filter: TodoTaskFilter = {}) {
     dueBefore = filter.dueDate.clone().endOf('day').utc().toISOString();
   }
 
-  const tasks = await apiRequest<TodoTask[]>({
+  const tasks = await apiRequest<PaginatedResult<TodoTask>>({
     method: 'GET',
     url: '/todo',
-    params: { completed: filter.completed, dueAfter, dueBefore, q: filter.q },
+    params: { ...filter, dueAfter, dueBefore, dueDate: undefined },
   });
 
-  return tasks.map(convertTaskDates);
+  tasks.items = tasks.items.map(convertTaskDates);
+
+  return tasks;
 }
 
 export async function getTask(taskId: number) {

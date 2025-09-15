@@ -125,7 +125,7 @@ import {
   watch,
   type PropType,
 } from 'vue';
-import type { TodoTask } from '../models';
+import type { TodoTask } from '../types';
 
 const props = defineProps({
   task: {

@@ -5,7 +5,7 @@ namespace YetAnotherTodoApp.Core.Contracts.Repositories;
 
 public interface ITodoRepository
 {
-    public Task<List<TodoTask>> GetAllTasks(TodoTaskFilter? filter = null);
+    public Task<PaginatedResult<TodoTask>> GetAllTasks(TodoTaskFilter filter);
     public Task<TodoTask?> GetTask(int id);
     public Task CreateTask(TodoTask task);
     public Task UpdateTask(TodoTask task);

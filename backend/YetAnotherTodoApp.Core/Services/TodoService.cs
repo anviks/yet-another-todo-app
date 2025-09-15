@@ -6,7 +6,7 @@ namespace YetAnotherTodoApp.Core.Services;
 
 public class TodoService(ITodoRepository todoRepository)
 {
-    public async Task<List<TodoTask>> GetAllTasks(TodoTaskFilter filter)
+    public async Task<PaginatedResult<TodoTask>> GetAllTasks(TodoTaskFilter filter)
     {
         return await todoRepository.GetAllTasks(filter);
     }

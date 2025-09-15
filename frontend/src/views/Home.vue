@@ -74,6 +74,16 @@
       </template>
     </v-col>
   </v-row>
+
+  <v-row
+    v-if="!isLoading"
+    justify="center"
+  >
+    <v-pagination
+      v-model="tasksFilter.page"
+      :length="pageCount"
+    />
+  </v-row>
 </template>
 
 <script setup lang="ts">
@@ -93,19 +103,25 @@ import {
   TodoTaskCard,
   TristateCheckbox,
 } from '../components/index.ts';
-import type { TodoTask } from '../models.ts';
+import type { TodoTask } from '../types.ts';
 
 const tasksFilter = reactive<TodoTaskFilter>({
   completed: null,
   dueDate: null,
   q: null,
+  page: 1,
+  pageSize: 10,
 });
 
 const isLoading = ref(true);
 const tasks = ref<TodoTask[]>([]);
+const pageCount = ref(1);
 
 const loadTasks = _.debounce(async () => {
-  tasks.value = await getTasks(tasksFilter);
+  const paginatedTasks = await getTasks(tasksFilter);
+  tasks.value = paginatedTasks.items;
+  pageCount.value = Math.ceil(paginatedTasks.totalCount / tasksFilter.pageSize);
+
   isLoading.value = false;
 }, 300);
 
