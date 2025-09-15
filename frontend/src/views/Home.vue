@@ -76,7 +76,7 @@
   </v-row>
 
   <v-row
-    v-if="!isLoading"
+    v-if="!isLoading && tasks.length"
     justify="center"
   >
     <div class="d-flex justify-center align-center ga-16 w-100">
@@ -92,7 +92,10 @@
       <div class="d-flex align-center">
         <v-btn
           :disabled="tasksFilter.page <= 1"
-          @click="tasksFilter.page--"
+          @click="
+            tasksFilter.page--;
+            loadTasks();
+          "
         >
           &lt;&lt;
         </v-btn>
@@ -101,7 +104,10 @@
 
         <v-btn
           :disabled="!hasNextPage"
-          @click="tasksFilter.page++"
+          @click="
+            tasksFilter.page++;
+            loadTasks();
+          "
         >
           &gt;&gt;
         </v-btn>
@@ -141,7 +147,7 @@ const isLoading = ref(false);
 const tasks = ref<TodoTask[]>([]);
 const hasNextPage = ref(false);
 
-const loadTasks = _.debounce(async () => {
+const loadTasks = async () => {
   isLoading.value = true;
 
   const paginatedTasks = await getTasks(tasksFilter);
@@ -149,9 +155,29 @@ const loadTasks = _.debounce(async () => {
   hasNextPage.value = paginatedTasks.hasNextPage;
 
   isLoading.value = false;
-}, 300);
+};
 
-watch(tasksFilter, loadTasks, { deep: true });
+const loadTasksDebounced = _.debounce(loadTasks, 300);
+
+watch(
+  () => tasksFilter.q,
+  () => {
+    tasksFilter.page = 1;
+    loadTasksDebounced();
+  }
+);
+
+watch(
+  [
+    () => tasksFilter.completed,
+    () => tasksFilter.dueDate,
+    () => tasksFilter.pageSize,
+  ],
+  () => {
+    tasksFilter.page = 1;
+    loadTasks();
+  }
+);
 
 const completionCheckboxLabel = computed(() => {
   if (tasksFilter.completed === true) {
