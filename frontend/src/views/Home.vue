@@ -188,11 +188,11 @@ watch(
 
 const completionCheckboxLabel = computed(() => {
   if (tasksFilter.completed === true) {
-    return 'Show only completed tasks';
+    return 'Completion (show only completed tasks)';
   } else if (tasksFilter.completed === false) {
-    return 'Show only uncompleted tasks';
+    return 'Completion (show only uncompleted tasks)';
   } else {
-    return "Don't filter by completion";
+    return "Completion (don't filter by completion)";
   }
 });
 
