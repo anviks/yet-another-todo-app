@@ -11,7 +11,6 @@ var optionsBuilder = new DbContextOptionsBuilder<TodoContext>();
 
 IConfigurationRoot config = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables()
     .Build();

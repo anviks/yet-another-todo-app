@@ -14,18 +14,19 @@ RUN dotnet restore "YetAnotherTodoApp.Seeder/YetAnotherTodoApp.Seeder.csproj"
 COPY . .
 
 WORKDIR "/src/YetAnotherTodoApp.WebApp"
+RUN dotnet build "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish-webapp
 RUN dotnet publish "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/webapp /p:UseAppHost=false
 
+FROM build AS publish-seeder
 WORKDIR "/src/YetAnotherTodoApp.Seeder"
 RUN dotnet publish "YetAnotherTodoApp.Seeder.csproj" -c $BUILD_CONFIGURATION -o /app/seeder /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 
-COPY --from=build /app/webapp ./webapp
-COPY --from=build /app/seeder ./seeder
-
-COPY ["YetAnotherTodoApp.Seeder/seeder.sh", "/app/seeder.sh"]
-RUN chmod +x /app/seeder.sh
+COPY --from=publish-webapp /app/webapp .
+COPY --from=publish-seeder /app/seeder ./seeder
 
 ENTRYPOINT ["dotnet", "YetAnotherTodoApp.WebApp.dll"]
