@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=build /app/webapp ./webapp
 COPY --from=build /app/seeder ./seeder
 
-COPY seeder.sh /app/seeder.sh
+COPY ["YetAnotherTodoApp.Seeder/seeder.sh", "/app/seeder.sh"]
 RUN chmod +x /app/seeder.sh
 
 ENTRYPOINT ["dotnet", "YetAnotherTodoApp.WebApp.dll"]

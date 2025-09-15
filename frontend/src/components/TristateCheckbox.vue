@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ modelValue: boolean | null, label?: string }>();
+const props = defineProps<{ modelValue: boolean | null | undefined, label?: string }>();
 const emit = defineEmits<{ 'update:model-value': [value: boolean | null] }>();
 
 const updateValue = () => {
