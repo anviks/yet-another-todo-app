@@ -34,37 +34,28 @@
 
   <v-row class="my-8">
     <v-col>
-      <div
-        v-if="isLoading"
-        class="d-flex justify-center align-center w-100"
+      <transition-group
+        v-if="tasks.length > 0"
+        name="tasks-list"
+        tag="div"
+        class="d-flex flex-column ga-3"
+        @before-leave="beforeLeave"
       >
-        <v-progress-circular indeterminate />
+        <todo-task-card
+          v-for="task in tasks"
+          :key="task.id"
+          :task="task"
+          @task-deleted="onTaskDelete(task.id)"
+          @task-completion="onTaskMarkCompletion(task.id, $event)"
+        />
+      </transition-group>
+
+      <div
+        v-else
+        class="text-center text-h3 text-grey"
+      >
+        No tasks to show
       </div>
-
-      <template v-else>
-        <transition-group
-          v-if="tasks.length > 0"
-          name="tasks-list"
-          tag="div"
-          class="d-flex flex-column ga-3"
-          @before-leave="beforeLeave"
-        >
-          <todo-task-card
-            v-for="task in tasks"
-            :key="task.id"
-            :task="task"
-            @task-deleted="onTaskDelete(task.id)"
-            @task-completion="onTaskMarkCompletion(task.id, $event)"
-          />
-        </transition-group>
-
-        <div
-          v-else
-          class="text-center text-h3 text-grey"
-        >
-          No tasks to show
-        </div>
-      </template>
     </v-col>
   </v-row>
 
@@ -108,6 +99,17 @@
       </div>
     </div>
   </v-row>
+
+  <div
+    v-if="isLoading"
+    class="fullscreen-loader"
+  >
+    <v-progress-circular
+      indeterminate
+      color="primary"
+      size="80"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -116,7 +118,6 @@ import _ from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import {
-  convertTaskDates,
   deleteTask,
   getTasks,
   markTaskCompletion,
@@ -149,7 +150,6 @@ const hasNextPage = ref(false);
 const loadTasks = async () => {
   isLoading.value = true;
 
-  // await new Promise((resolve) => setTimeout(resolve, 1000000));
   const paginatedTasks = await getTasks(tasksFilter);
   tasks.value = paginatedTasks.items;
   hasNextPage.value = paginatedTasks.hasNextPage;
@@ -225,14 +225,14 @@ const connectToHub = () => {
     .build();
 
   connection.value.on('TaskCreated', (task: TodoTask) => {
-    tasks.value.push(convertTaskDates(task));
+    loadTasks();
     toast.info(`Task "${task.title}" was created`);
   });
 
   connection.value.on('TaskUpdated', (task: TodoTask) => {
     const index = tasks.value.findIndex((t) => t.id === task.id);
     if (index !== -1) {
-      tasks.value[index] = convertTaskDates(task);
+      loadTasks();
       toast.info(`Task "${task.title}" was updated`);
     }
   });
@@ -247,7 +247,7 @@ const connectToHub = () => {
       } else {
         toast.info(`Task "${tasks.value[index].title}" was deleted`);
       }
-      tasks.value.splice(index, 1);
+      loadTasks();
     }
   });
 
@@ -256,7 +256,7 @@ const connectToHub = () => {
     (task: TodoTask, connectionId: string) => {
       const index = tasks.value.findIndex((t) => t.id === task.id);
       if (index !== -1) {
-        tasks.value[index] = convertTaskDates(task);
+        loadTasks();
         const completed = !!task.completedAt;
         const completion = completed ? 'completed' : 'not completed';
 
@@ -313,5 +313,18 @@ onUnmounted(async () => {
   &leave-active {
     position: absolute;
   }
+}
+
+.fullscreen-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 9999;
 }
 </style>
