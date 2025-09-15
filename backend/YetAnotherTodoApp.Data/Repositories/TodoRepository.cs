@@ -1,7 +1,6 @@
 ﻿using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using NpgsqlTypes;
 using YetAnotherTodoApp.Core.Dtos;
 using YetAnotherTodoApp.Data.Context;
 
