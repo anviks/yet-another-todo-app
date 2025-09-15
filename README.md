@@ -18,7 +18,7 @@ allowing for rapid prototyping and an excellent developer experience. It is also
 
 1. Clone the repository
 ```bash
-git clone https://github.com/anviks/yet-another-todo-app.git
+git clone -b variant-1 https://github.com/anviks/yet-another-todo-app.git
 cd yet-another-todo-app
 ```
 
