@@ -150,11 +150,13 @@ const hasNextPage = ref(false);
 const loadTasks = async () => {
   isLoading.value = true;
 
-  const paginatedTasks = await getTasks(tasksFilter);
-  tasks.value = paginatedTasks.items;
-  hasNextPage.value = paginatedTasks.hasNextPage;
-
-  isLoading.value = false;
+  try {
+    const paginatedTasks = await getTasks(tasksFilter);
+    tasks.value = paginatedTasks.items;
+    hasNextPage.value = paginatedTasks.hasNextPage;
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const loadTasksDebounced = _.debounce(loadTasks, 300);
