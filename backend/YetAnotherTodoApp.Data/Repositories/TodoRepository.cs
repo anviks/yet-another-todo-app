@@ -23,9 +23,9 @@ public class TodoRepository(TodoContext db) : ITodoRepository
             query = query.Where(t => t.Description.ToLower().Contains(filter.Q.ToLower()));
 
         var items = await query
+            .OrderByDescending(t => t.CreatedAt)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize + 1)
-            .OrderBy(t => t.CreatedAt)
             .ToListAsync();
 
         var hasNextPage = items.Count > filter.PageSize;
@@ -81,5 +81,10 @@ public class TodoRepository(TodoContext db) : ITodoRepository
             .AsNoTracking()
             .Where(t => t.Id == id)
             .AnyAsync();
+    }
+
+    public async Task SaveChanges()
+    {
+        await db.SaveChangesAsync();
     }
 }
