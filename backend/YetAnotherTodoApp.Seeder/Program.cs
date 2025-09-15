@@ -20,11 +20,13 @@ var connectionString = config.GetConnectionString("DefaultConnection") ??
 
 optionsBuilder.UseNpgsql(connectionString);
 
-var rootCommand = new RootCommand();
+var rootCommand = new RootCommand
+{
+    Description = "Seed the database with fake todo tasks"
+};
 
 var countOption = new Option<int>("--count")
 {
-    DefaultValueFactory = _ => 100,
     Description = "Number of todo tasks to create",
 };
 
