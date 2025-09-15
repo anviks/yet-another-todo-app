@@ -6,7 +6,7 @@
       :close-on-content-click="false"
       transition="scale-transition"
       offset-y
-      max-width="300px"
+      min-width="0"
     >
       <template #activator="{ props }">
         <v-text-field
@@ -28,7 +28,7 @@
       :close-on-content-click="false"
       transition="scale-transition"
       offset-y
-      max-width="300px"
+      min-width="0"
     >
       <template #activator="{ props }">
         <v-text-field
