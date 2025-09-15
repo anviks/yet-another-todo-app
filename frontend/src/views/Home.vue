@@ -137,6 +137,11 @@ const tasksFilter = reactive<TodoTaskFilter>({
   pageSize: 10,
 });
 
+const savedPageSize = localStorage.getItem('tasksPageSize');
+if (savedPageSize) {
+  tasksFilter.pageSize = Number(savedPageSize);
+}
+
 const isLoading = ref(false);
 const tasks = ref<TodoTask[]>([]);
 const hasNextPage = ref(false);
@@ -159,6 +164,13 @@ watch(
   () => {
     tasksFilter.page = 1;
     loadTasksDebounced();
+  }
+);
+
+watch(
+  () => tasksFilter.pageSize,
+  (newSize) => {
+    localStorage.setItem('tasksPageSize', newSize.toString());
   }
 );
 

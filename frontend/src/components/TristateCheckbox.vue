@@ -5,7 +5,7 @@
     @update:model-value="updateValue"
     hide-details
     :indeterminate="modelValue === null"
-  ></v-checkbox>
+  />
 </template>
 
 <script setup lang="ts">
