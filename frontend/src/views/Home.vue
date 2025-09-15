@@ -1,83 +1,75 @@
 <template>
-  <v-row>
-    <v-expansion-panels>
-      <v-expansion-panel title="Filter tasks">
-        <template #text>
-          <v-text-field
-            v-model="tasksFilter.q"
-            prepend-inner-icon="mdi-magnify"
-            label="Search by description"
-            hide-details
-          />
-
-          <tristate-checkbox
-            v-model="tasksFilter.completed"
-            :label="completionCheckboxLabel"
-          />
-
-          <datetime-picker
-            v-model="tasksFilter.dueDate"
-            type="date"
-            label="Due on"
-          />
-        </template>
-      </v-expansion-panel>
-    </v-expansion-panels>
-  </v-row>
-
-  <v-row>
-    <v-col
-      cols="12"
-      sm="1"
-      class="d-flex justify-center align-center"
-    >
+  <v-row class="mb-10 mt-1">
+    <div class="d-flex w-100 ga-8 mx-5">
       <v-btn
         icon="mdi-plus"
         :to="{ name: 'add-task' }"
       />
-    </v-col>
 
-    <v-col
-      cols="12"
-      sm="11"
+      <v-expansion-panels>
+        <v-expansion-panel title="Filter tasks">
+          <template #text>
+            <v-text-field
+              v-model="tasksFilter.q"
+              prepend-inner-icon="mdi-magnify"
+              label="Search by description"
+              hide-details
+            />
+
+            <tristate-checkbox
+              v-model="tasksFilter.completed"
+              :label="completionCheckboxLabel"
+            />
+
+            <datetime-picker
+              v-model="tasksFilter.dueDate"
+              type="date"
+              label="Due on"
+            />
+          </template>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </div>
+  </v-row>
+
+  <v-row>
+    <div
+      v-if="isLoading"
+      class="d-flex justify-center align-center h-100"
     >
-      <div
-        v-if="isLoading"
-        class="d-flex justify-center align-center h-100"
+      <v-progress-circular indeterminate />
+    </div>
+
+    <template v-else>
+      <transition-group
+        v-if="tasks.length > 0"
+        name="tasks-list"
+        tag="div"
+        class="d-flex flex-column ga-3"
+        @before-leave="beforeLeave"
       >
-        <v-progress-circular indeterminate />
+        <todo-task-card
+          v-for="task in tasks"
+          :key="task.id"
+          :task="task"
+          @task-deleted="onTaskDelete(task.id)"
+          @task-completion="onTaskMarkCompletion(task.id, $event)"
+        />
+      </transition-group>
+
+      <div
+        v-else
+        class="text-center text-h3 ma-8 mt-15 text-grey"
+      >
+        No tasks to show
       </div>
-
-      <template v-else>
-        <transition-group
-          v-if="tasks.length > 0"
-          name="tasks-list"
-          tag="div"
-          class="d-flex flex-column ga-3"
-          @before-leave="beforeLeave"
-        >
-          <todo-task-card
-            v-for="task in tasks"
-            :key="task.id"
-            :task="task"
-            @task-deleted="onTaskDelete(task.id)"
-            @task-completion="onTaskMarkCompletion(task.id, $event)"
-          />
-        </transition-group>
-
-        <div
-          v-else
-          class="text-center text-h3 ma-8 mt-15 text-grey"
-        >
-          No tasks to show
-        </div>
-      </template>
-    </v-col>
+    </template>
   </v-row>
 
   <v-row
     v-if="!isLoading && tasks.length"
     justify="center"
+    class="mt-10 mb-1"
   >
     <div class="d-flex justify-center align-center ga-16 w-100">
       <v-select
