@@ -79,10 +79,34 @@
     v-if="!isLoading"
     justify="center"
   >
-    <v-pagination
-      v-model="tasksFilter.page"
-      :length="pageCount"
-    />
+    <div class="d-flex justify-center align-center ga-16 w-100">
+      <v-select
+        v-model="tasksFilter.pageSize"
+        :items="[5, 10, 20]"
+        label="Tasks per page"
+        hide-details
+        dense
+        style="max-width: 150px"
+      />
+
+      <div class="d-flex align-center">
+        <v-btn
+          :disabled="tasksFilter.page <= 1"
+          @click="tasksFilter.page--"
+        >
+          &lt;&lt;
+        </v-btn>
+
+        <span class="mx-4 text-h6"> Page {{ tasksFilter.page }} </span>
+
+        <v-btn
+          :disabled="!hasNextPage"
+          @click="tasksFilter.page++"
+        >
+          &gt;&gt;
+        </v-btn>
+      </div>
+    </div>
   </v-row>
 </template>
 
@@ -113,14 +137,16 @@ const tasksFilter = reactive<TodoTaskFilter>({
   pageSize: 10,
 });
 
-const isLoading = ref(true);
+const isLoading = ref(false);
 const tasks = ref<TodoTask[]>([]);
-const pageCount = ref(1);
+const hasNextPage = ref(false);
 
 const loadTasks = _.debounce(async () => {
+  isLoading.value = true;
+
   const paginatedTasks = await getTasks(tasksFilter);
   tasks.value = paginatedTasks.items;
-  pageCount.value = Math.ceil(paginatedTasks.totalCount / tasksFilter.pageSize);
+  hasNextPage.value = paginatedTasks.hasNextPage;
 
   isLoading.value = false;
 }, 300);

@@ -2,7 +2,7 @@ import { type Moment } from 'moment';
 
 export interface PaginatedResult<T> {
   items: T[];
-  totalCount: number;
+  hasNextPage: boolean;
 }
 
 export interface TodoTask {

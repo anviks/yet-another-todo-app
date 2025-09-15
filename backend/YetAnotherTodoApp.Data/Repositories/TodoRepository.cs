@@ -1,6 +1,7 @@
 ﻿using YetAnotherTodoApp.Core.Contracts.Repositories;
 using YetAnotherTodoApp.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 using YetAnotherTodoApp.Core.Dtos;
 using YetAnotherTodoApp.Data.Context;
 
@@ -10,7 +11,7 @@ public class TodoRepository(TodoContext db) : ITodoRepository
 {
     public async Task<PaginatedResult<TodoTask>> GetAllTasks(TodoTaskFilter filter)
     {
-        var query = db.Tasks.AsQueryable();
+        var query = db.Tasks.AsNoTracking().AsQueryable();
 
         if (filter.Completed.HasValue)
             query = query.Where(t => (t.CompletedAt != null) == filter.Completed);
@@ -21,18 +22,20 @@ public class TodoRepository(TodoContext db) : ITodoRepository
         if (!string.IsNullOrEmpty(filter.Q))
             query = query.Where(t => t.Description.ToLower().Contains(filter.Q.ToLower()));
 
-        var totalCount = await query.CountAsync();
-
         var items = await query
             .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize)
+            .Take(filter.PageSize + 1)
             .OrderBy(t => t.CreatedAt)
             .ToListAsync();
+
+        var hasNextPage = items.Count > filter.PageSize;
+        if (hasNextPage)
+            items.RemoveAt(items.Count - 1);
 
         return new PaginatedResult<TodoTask>
         {
             Items = items,
-            TotalCount = totalCount
+            HasNextPage = hasNextPage,
         };
     }
 

@@ -35,7 +35,7 @@ rootCommand.SetAction(
     async result =>
     {
         var faker = new Faker<TodoTask>()
-            .RuleFor(t => t.Title, f => f.Lorem.Sentence(3, 8))
+            .RuleFor(t => t.Title, f => f.Lorem.Sentence(3, 6))
             .RuleFor(t => t.Description, f => f.Lorem.Sentence(5, 200))
             .RuleFor(t => t.CreatedAt, f => f.Date.Past(1, DateTime.UtcNow.AddMonths(-6)).ToUniversalTime())
             .RuleFor(t => t.DueDate, f => f.Date.Between(DateTime.UtcNow.AddMonths(-6), DateTime.UtcNow.AddMonths(6)).ToUniversalTime())
