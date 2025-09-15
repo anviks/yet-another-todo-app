@@ -6,18 +6,26 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["YetAnotherTodoApp.WebApp/YetAnotherTodoApp.WebApp.csproj", "YetAnotherTodoApp.WebApp/"]
+COPY ["YetAnotherTodoApp.Seeder/YetAnotherTodoApp.Seeder.csproj", "YetAnotherTodoApp.Seeder/"]
+
 RUN dotnet restore "YetAnotherTodoApp.WebApp/YetAnotherTodoApp.WebApp.csproj"
+RUN dotnet restore "YetAnotherTodoApp.Seeder/YetAnotherTodoApp.Seeder.csproj"
 
 COPY . .
-WORKDIR "/src/YetAnotherTodoApp.WebApp"
-RUN dotnet build "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR "/src/YetAnotherTodoApp.WebApp"
+RUN dotnet publish "YetAnotherTodoApp.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/webapp /p:UseAppHost=false
+
+WORKDIR "/src/YetAnotherTodoApp.Seeder"
+RUN dotnet publish "YetAnotherTodoApp.Seeder.csproj" -c $BUILD_CONFIGURATION -o /app/seeder /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY --from=build /app/webapp ./webapp
+COPY --from=build /app/seeder ./seeder
+
+COPY seeder.sh /app/seeder.sh
+RUN chmod +x /app/seeder.sh
 
 ENTRYPOINT ["dotnet", "YetAnotherTodoApp.WebApp.dll"]
